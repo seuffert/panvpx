@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <Match>
+        <Class name="~org\.seuffert\.panvpx\.ffi\..*"/>
+    </Match>
+    <Match>
+        <Class name="module-info"/>
+    </Match>
+
+    <!-- Project Panama: FFM MemorySegment references often trigger EI/EI2 warnings -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    
+    <!-- FFM constructors handling native failures might legitimately throw exceptions.
+         Finalizer attacks are mitigated in Java 25 anyway since finalization is deprecated/removed -->
+    <Match>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
+</FindBugsFilter>

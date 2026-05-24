@@ -1,29 +1,27 @@
 package org.seuffert.panvpx;
 
+import java.lang.foreign.MemorySegment;
 import org.seuffert.panvpx.ffi.VpxFFI;
 
-import java.lang.foreign.MemorySegment;
-
-/**
- * Global utility entry point for the PanVPX library.
- */
+/** Global utility entry point for the PanVPX library. */
 public final class PanVpx {
 
-    private static Boolean available = null;
+    private static volatile boolean checked = false;
+    private static volatile boolean available = false;
 
     private PanVpx() {
         // Prevent instantiation
     }
 
     /**
-     * Checks if the libvpx native library is successfully loaded and available on the system.
-     * This method safely attempts to load the native library without throwing exceptions or segfaulting.
+     * Checks if the libvpx native library is successfully loaded and available on the system. This
+     * method safely attempts to load the native library without throwing exceptions or segfaulting.
      * Safe to call multiple times.
      *
      * @return true if the native library is available, false otherwise.
      */
     public static synchronized boolean isLibVpxAvailable() {
-        if (available != null) {
+        if (checked) {
             return available;
         }
         try {
@@ -36,6 +34,7 @@ public final class PanVpx {
             // Catch all LinkageError, ExceptionInInitializerError, UnsatisfiedLinkError, etc.
             available = false;
         }
+        checked = true;
         return available;
     }
 

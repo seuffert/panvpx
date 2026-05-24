@@ -34,6 +34,27 @@
 - Design base classes (`AbstractVpxEncoder`) with reusability for VP9 in mind.
 - The main code resides in the `lib` module.
 
+### Static analysis
+
+Five Gradle plugins enforce quality on every build. Their configuration lives under `config/`:
+
+| Plugin | Config file | Scope |
+|---|---|---|
+| **Spotless** (diffplug) | *(no file — configured inline)* | Auto-formats source with Google Java Format AOSP version "1.27.0" |
+| **Error Prone + NullAway** | *(inline)* | Compiler-integrated bug patterns; NullAway checks `org.seuffert.panvpx` |
+| **Checkstyle** | `config/checkstyle/checkstyle.xml` | Style, imports, Javadoc completeness |
+| **SpotBugs** | `config/spotbugs/exclude.xml` | Bytecode bug-pattern detection |
+| **PMD** | `config/pmd/pmd-ruleset.xml` | Source-level static analysis |
+
+All plugins exclude `org.seuffert.panvpx.ffi` and `module-info.java`.
+Do not disable or weaken these checks. If a rule is genuinely inapplicable, add a
+named `<exclude>` to the relevant config file with a comment explaining why.
+
+Boolean accessor methods must follow the `isXxx()` naming convention (not `getXxx()`).
+
+Declare local variables and method parameters `final` wherever they are not reassigned.
+PMD enforces this via `LocalVariableCouldBeFinal` and `MethodArgumentCouldBeFinal`.
+
 ### 5. Javadoc
 - All `public` and `protected` members in `org.seuffert.panvpx` must have Javadoc.
 - `org.seuffert.panvpx.ffi` is excluded from generated docs — do not add `@see` references to it from public Javadoc.

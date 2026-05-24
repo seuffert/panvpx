@@ -1,10 +1,10 @@
 package org.seuffert.panvpx;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Test;
 
 class PanVpxTest {
 
@@ -17,8 +17,10 @@ class PanVpxTest {
 
         String version = PanVpx.getVersionString();
         assertNotNull(version);
-        assertFalse(version.equals("N/A") || version.equals("Unknown"), "Version string should be valid");
-        
+        assertFalse(
+                version.equals("N/A") || version.equals("Unknown"),
+                "Version string should be valid");
+
         System.out.println("Loaded libvpx version: " + version);
         System.out.println("Build config: " + PanVpx.getBuildConfigString());
     }

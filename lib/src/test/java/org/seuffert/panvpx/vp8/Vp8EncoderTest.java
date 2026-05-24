@@ -1,12 +1,11 @@
 package org.seuffert.panvpx.vp8;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.seuffert.panvpx.core.VpxImage;
 import org.seuffert.panvpx.core.VpxPacket;
-
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class Vp8EncoderTest {
 
@@ -30,7 +29,7 @@ class Vp8EncoderTest {
 
         // Use try-with-resources to manage the lifecycle of native arenas properly
         try (Vp8Encoder encoder = new Vp8Encoder(config);
-             VpxImage image = VpxImage.fromByteArray(dummyData, width, height)) {
+                VpxImage image = VpxImage.fromByteArray(dummyData, width, height)) {
 
             // Encode a frame
             List<VpxPacket> packets = encoder.encode(image, 0, 1000, 0);
@@ -48,6 +47,7 @@ class Vp8EncoderTest {
             packetsReceived += flushPackets.size();
         }
 
-        assertTrue(packetsReceived > 0, "Should have received at least one packet from the encoder");
+        assertTrue(
+                packetsReceived > 0, "Should have received at least one packet from the encoder");
     }
 }

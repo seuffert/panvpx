@@ -1,23 +1,20 @@
 package org.seuffert.panvpx.vp8;
 
-import org.seuffert.panvpx.core.VpxException;
-import org.seuffert.panvpx.core.VpxImage;
-import org.seuffert.panvpx.core.VpxPacket;
-import org.seuffert.panvpx.ffi.VpxFFI;
-import org.seuffert.panvpx.ffi.vpx_codec_ctx;
-import org.seuffert.panvpx.ffi.vpx_codec_enc_cfg;
-import org.seuffert.panvpx.ffi.vpx_rational;
-import org.seuffert.panvpx.ffi.vpx_codec_cx_pkt;
-
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
 import java.util.ArrayList;
 import java.util.List;
+import org.seuffert.panvpx.core.VpxException;
+import org.seuffert.panvpx.core.VpxImage;
+import org.seuffert.panvpx.core.VpxPacket;
+import org.seuffert.panvpx.ffi.VpxFFI;
+import org.seuffert.panvpx.ffi.vpx_codec_ctx;
+import org.seuffert.panvpx.ffi.vpx_codec_cx_pkt;
+import org.seuffert.panvpx.ffi.vpx_codec_enc_cfg;
+import org.seuffert.panvpx.ffi.vpx_rational;
 
-/**
- * VP8 Video Encoder using libvpx via Project Panama FFM API.
- */
+/** VP8 Video Encoder using libvpx via Project Panama FFM API. */
 public class Vp8Encoder implements AutoCloseable {
 
     private final Arena arena = Arena.ofShared();
@@ -25,8 +22,8 @@ public class Vp8Encoder implements AutoCloseable {
     private final MemorySegment iterPtr;
 
     /**
-     * Initializes the VP8 Encoder with the provided configuration.
-     * The encoder allocates native memory that must be released by calling {@link #close()}.
+     * Initializes the VP8 Encoder with the provided configuration. The encoder allocates native
+     * memory that must be released by calling {@link #close()}.
      *
      * @param config The encoder configuration.
      */
@@ -53,7 +50,9 @@ public class Vp8Encoder implements AutoCloseable {
         vpx_rational.den(timebase, config.timebaseDenominator());
 
         // 4. Initialize the encoder
-        res = VpxFFI.vpx_codec_enc_init_ver(codecCtx, iface, encCfg, 0, VpxFFI.VPX_ENCODER_ABI_VERSION());
+        res =
+                VpxFFI.vpx_codec_enc_init_ver(
+                        codecCtx, iface, encCfg, 0, VpxFFI.VPX_ENCODER_ABI_VERSION());
         checkError(res, "Failed to initialize VP8 encoder");
 
         // Allocate iterator pointer for vpx_codec_get_cx_data
@@ -63,14 +62,21 @@ public class Vp8Encoder implements AutoCloseable {
     /**
      * Encodes a single frame.
      *
-     * @param image    The VpxImage containing the uncompressed frame data.
-     * @param pts      The presentation timestamp of the frame.
+     * @param image The VpxImage containing the uncompressed frame data.
+     * @param pts The presentation timestamp of the frame.
      * @param duration The duration to show the frame.
-     * @param flags    Encoding flags (e.g., VPX_EFLAG_FORCE_KF for keyframes).
+     * @param flags Encoding flags (e.g., VPX_EFLAG_FORCE_KF for keyframes).
      * @return A list of encoded packets.
      */
     public List<VpxPacket> encode(VpxImage image, long pts, long duration, long flags) {
-        int res = VpxFFI.vpx_codec_encode(codecCtx, image.getNativeImage(), pts, duration, flags, VpxFFI.VPX_DL_REALTIME());
+        int res =
+                VpxFFI.vpx_codec_encode(
+                        codecCtx,
+                        image.getNativeImage(),
+                        pts,
+                        duration,
+                        flags,
+                        VpxFFI.VPX_DL_REALTIME());
         checkError(res, "Failed to encode frame");
 
         return extractPackets();
@@ -82,7 +88,9 @@ public class Vp8Encoder implements AutoCloseable {
      * @return A list of delayed encoded packets.
      */
     public List<VpxPacket> flush() {
-        int res = VpxFFI.vpx_codec_encode(codecCtx, MemorySegment.NULL, 0, 0, 0, VpxFFI.VPX_DL_REALTIME());
+        int res =
+                VpxFFI.vpx_codec_encode(
+                        codecCtx, MemorySegment.NULL, 0, 0, 0, VpxFFI.VPX_DL_REALTIME());
         checkError(res, "Failed to flush encoder");
         return extractPackets();
     }
@@ -105,7 +113,8 @@ public class Vp8Encoder implements AutoCloseable {
                 // Get the frame struct inside the union
                 MemorySegment dataLayout = vpx_codec_cx_pkt.data(pktPtr);
 
-                MemorySegment bufAddress = org.seuffert.panvpx.ffi.vpx_codec_cx_pkt.data.frame.buf(dataLayout);
+                MemorySegment bufAddress =
+                        org.seuffert.panvpx.ffi.vpx_codec_cx_pkt.data.frame.buf(dataLayout);
                 long bufSize = org.seuffert.panvpx.ffi.vpx_codec_cx_pkt.data.frame.sz(dataLayout);
 
                 if (bufAddress.address() != 0L && bufSize > 0) {
@@ -118,9 +127,7 @@ public class Vp8Encoder implements AutoCloseable {
         return packets;
     }
 
-    /**
-     * Destroys the native encoder context and releases all associated native memory.
-     */
+    /** Destroys the native encoder context and releases all associated native memory. */
     @Override
     public void close() {
         VpxFFI.vpx_codec_destroy(codecCtx);
@@ -130,7 +137,10 @@ public class Vp8Encoder implements AutoCloseable {
     private void checkError(int res, String message) {
         if (res != VpxFFI.VPX_CODEC_OK()) {
             MemorySegment errDetailPtr = VpxFFI.vpx_codec_error_detail(codecCtx);
-            String detail = (errDetailPtr.address() != 0L) ? errDetailPtr.getString(0) : "No detail available";
+            String detail =
+                    (errDetailPtr.address() != 0L)
+                            ? errDetailPtr.getString(0)
+                            : "No detail available";
             throw new VpxException(res, message + ": " + detail);
         }
     }
