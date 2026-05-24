@@ -6,8 +6,8 @@ import org.seuffert.panvpx.ffi.VpxFFI;
 /** Global utility entry point for the PanVPX library. */
 public final class PanVpx {
 
-    private static volatile boolean checked = false;
-    private static volatile boolean available = false;
+    private static boolean checked;
+    private static boolean available;
 
     private PanVpx() {
         // Prevent instantiation
@@ -20,22 +20,24 @@ public final class PanVpx {
      *
      * @return true if the native library is available, false otherwise.
      */
-    public static synchronized boolean isLibVpxAvailable() {
-        if (checked) {
+    public static boolean isLibVpxAvailable() {
+        synchronized (PanVpx.class) {
+            if (checked) {
+                return available;
+            }
+            try {
+                // Attempt to resolve the FFI class which triggers the static native library load
+                Class.forName("org.seuffert.panvpx.ffi.VpxFFI");
+                // Make a harmless call to verify it's functional
+                final MemorySegment versionStr = VpxFFI.vpx_codec_version_str();
+                available = (versionStr != null && versionStr.address() != 0);
+            } catch (final LinkageError | RuntimeException | ClassNotFoundException t) {
+                // Catch all LinkageError, ExceptionInInitializerError, UnsatisfiedLinkError, etc.
+                available = false;
+            }
+            checked = true;
             return available;
         }
-        try {
-            // Attempt to resolve the FFI class which triggers the static native library load
-            Class.forName("org.seuffert.panvpx.ffi.VpxFFI");
-            // Make a harmless call to verify it's functional
-            final MemorySegment versionStr = VpxFFI.vpx_codec_version_str();
-            available = (versionStr != null && versionStr.address() != 0);
-        } catch (final Throwable t) {
-            // Catch all LinkageError, ExceptionInInitializerError, UnsatisfiedLinkError, etc.
-            available = false;
-        }
-        checked = true;
-        return available;
     }
 
     /**

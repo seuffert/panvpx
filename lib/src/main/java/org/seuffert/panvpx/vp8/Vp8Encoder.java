@@ -114,10 +114,8 @@ public class Vp8Encoder implements AutoCloseable {
                 // Get the frame struct inside the union
                 final MemorySegment dataLayout = vpx_codec_cx_pkt.data(pktPtr);
 
-                final MemorySegment bufAddress =
-                        org.seuffert.panvpx.ffi.vpx_codec_cx_pkt.data.frame.buf(dataLayout);
-                final long bufSize =
-                        org.seuffert.panvpx.ffi.vpx_codec_cx_pkt.data.frame.sz(dataLayout);
+                final MemorySegment bufAddress = vpx_codec_cx_pkt.data.frame.buf(dataLayout);
+                final long bufSize = vpx_codec_cx_pkt.data.frame.sz(dataLayout);
 
                 if (bufAddress.address() != 0L && bufSize > 0) {
                     final MemorySegment dataSegment = bufAddress.reinterpret(bufSize);

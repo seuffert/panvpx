@@ -5,9 +5,91 @@
          xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd">
     <description>Custom ruleset for PanVPX</description>
     
-    <!-- We will slowly introduce PMD rules as the project matures. 
-         For now, we enforce naming conventions and avoid catastrophic anti-patterns. -->
+    <!-- Best Practices -->
+    <rule ref="category/java/bestpractices.xml">
+        <!-- JUnit rules that don't apply to JUnit Jupiter -->
+        <exclude name="JUnit4SuitesShouldUseSuiteAnnotation"/>
+        <!-- We accept array returns in PCM-centric APIs -->
+        <exclude name="ArrayIsStoredDirectly"/>
+        <exclude name="MethodReturnsInternalArray"/>
+        <!-- Too prescriptive for test code -->
+        <exclude name="UnitTestAssertionsShouldIncludeMessage"/>
+        <exclude name="UnitTestContainsTooManyAsserts"/>
+        <!-- Cannot use try-with-resources if arena ownership is transferred -->
+        <exclude name="UseTryWithResources"/>
+    </rule>
 
-    <rule ref="category/java/codestyle.xml/LocalVariableCouldBeFinal"/>
-    <rule ref="category/java/codestyle.xml/MethodArgumentCouldBeFinal"/>
+    <!-- Error Prone patterns -->
+    <rule ref="category/java/errorprone.xml">
+        <!-- Allow assignment in conditionals in some cases -->
+        <exclude name="AssignmentInOperand"/>
+        <!-- Avoid false positives on intentional null returns -->
+        <exclude name="NullAssignment"/>
+        <!-- Triggered by intentional patterns in Panama code -->
+        <exclude name="AvoidLiteralsInIfCondition"/>
+        <!-- Enum value() method matching field 'value' is idiomatic Java -->
+        <exclude name="AvoidFieldNameMatchingMethodName"/>
+        <!-- FFM Arenas often have complex lifecycles with ownership transfer -->
+        <exclude name="CloseResource"/>
+        <!-- JNI wrapper and linkage error catching is intentionally generic -->
+        <exclude name="AvoidCatchingGenericException"/>
+    </rule>
+
+    <!-- Performance -->
+    <rule ref="category/java/performance.xml">
+        <!-- Avoid blocking StringBuilder warnings on string concatenation in log/exception messages -->
+        <exclude name="InsufficientStringBufferDeclaration"/>
+        <!-- Test code legitimately creates objects in loops -->
+        <exclude name="AvoidInstantiatingObjectsInLoops"/>
+    </rule>
+
+    <!-- Design -->
+    <rule ref="category/java/design.xml">
+        <!-- Small focused library — cyclomatic complexity limits can be strict -->
+        <exclude name="CyclomaticComplexity"/>
+        <exclude name="NPathComplexity"/>
+        <!-- Cognitive complexity is noise for Panama-heavy low-level code -->
+        <exclude name="CognitiveComplexity"/>
+        <!-- Allow top-level public classes to be in a file with the same name -->
+        <exclude name="TooManyMethods"/>
+        <exclude name="ExcessivePublicCount"/>
+        <!-- Allow classes with many fields in data-heavy contexts -->
+        <exclude name="TooManyFields"/>
+        <!-- Comprehensive API wrappers for a native library are intentionally large -->
+        <exclude name="GodClass"/>
+        <!-- Avoid false positives from FFM-style code -->
+        <exclude name="LawOfDemeter"/>
+        <exclude name="LoosePackageCoupling"/>
+    </rule>
+
+    <!-- Code Style -->
+    <rule ref="category/java/codestyle.xml">
+        <!-- Formatting handled by Spotless -->
+        <exclude name="AtLeastOneConstructor"/>
+        <exclude name="OnlyOneReturn"/>
+        <exclude name="ConfusingTernary"/>
+        <exclude name="UnnecessaryLocalBeforeReturn"/>
+        <exclude name="LongVariable"/>
+        <exclude name="ShortVariable"/>
+        <exclude name="ShortClassName"/>
+        <exclude name="ShortMethodName"/>
+        <!-- Standard Java convention, not enforced here -->
+        <exclude name="CommentDefaultAccessModifier"/>
+        <!-- package-private test classes are idiomatic JUnit Jupiter -->
+        <exclude name="UseExplicitTypes"/>
+        <!-- Test files legitimately need many static assertion imports -->
+        <exclude name="TooManyStaticImports"/>
+        <!-- False positives: test methods named getXxx() that return void -->
+        <exclude name="LinguisticNaming"/>
+    </rule>
+
+    <!-- Multithreading -->
+    <rule ref="category/java/multithreading.xml">
+        <!-- We use double-checked locking idiom with synchronized blocks -->
+        <exclude name="AvoidSynchronizedStatement"/>
+    </rule>
+
+    <!-- Security -->
+    <rule ref="category/java/security.xml"/>
+
 </ruleset>

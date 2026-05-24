@@ -18,10 +18,7 @@ class PanVpxTest {
         final String version = PanVpx.getVersionString();
         assertNotNull(version);
         assertFalse(
-                version.equals("N/A") || version.equals("Unknown"),
+                "N/A".equals(version) || "Unknown".equals(version),
                 "Version string should be valid");
-
-        System.out.println("Loaded libvpx version: " + version);
-        System.out.println("Build config: " + PanVpx.getBuildConfigString());
     }
 }

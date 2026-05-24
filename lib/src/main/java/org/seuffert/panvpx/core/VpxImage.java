@@ -10,7 +10,7 @@ import org.seuffert.panvpx.ffi.vpx_image;
  * A wrapper for the native `vpx_image_t` structure. Manages the memory for raw uncompressed image
  * frames.
  */
-public class VpxImage implements AutoCloseable {
+public final class VpxImage implements AutoCloseable {
 
     /** Standard VPX Image Format for I420 planar data. */
     public static final int VPX_IMG_FMT_I420 =
@@ -83,13 +83,17 @@ public class VpxImage implements AutoCloseable {
      */
     public static VpxImage fromByteArray(final byte[] data, final int width, final int height) {
         final Arena arena = Arena.ofShared();
+        boolean success = false;
         try {
             final MemorySegment dataSegment = arena.allocate(data.length);
             MemorySegment.copy(data, 0, dataSegment, ValueLayout.JAVA_BYTE, 0, data.length);
-            return create(dataSegment, arena, width, height, VPX_IMG_FMT_I420);
-        } catch (final Exception e) {
-            arena.close();
-            throw e;
+            final VpxImage img = create(dataSegment, arena, width, height, VPX_IMG_FMT_I420);
+            success = true;
+            return img;
+        } finally {
+            if (!success) {
+                arena.close();
+            }
         }
     }
 
@@ -105,6 +109,7 @@ public class VpxImage implements AutoCloseable {
     public static VpxImage fromMemorySegment(
             final MemorySegment segment, final int width, final int height) {
         final Arena structArena = Arena.ofConfined();
+        boolean success = false;
         try {
             final MemorySegment imageStruct = vpx_image.allocate(structArena);
             final MemorySegment result =
@@ -112,10 +117,14 @@ public class VpxImage implements AutoCloseable {
             if (result.address() == 0L) {
                 throw new VpxException(-1, "Failed to wrap image memory in vpx_img_wrap");
             }
-            return new VpxImage(imageStruct, structArena, width, height, VPX_IMG_FMT_I420);
-        } catch (final Exception e) {
-            structArena.close();
-            throw e;
+            final VpxImage img =
+                    new VpxImage(imageStruct, structArena, width, height, VPX_IMG_FMT_I420);
+            success = true;
+            return img;
+        } finally {
+            if (!success) {
+                structArena.close();
+            }
         }
     }
 
@@ -127,22 +136,18 @@ public class VpxImage implements AutoCloseable {
             final int format) {
         // Allocate the vpx_image_t struct itself.
         // We have an arena (meaning we own the data segment), use it.
-        try {
-            final MemorySegment imageStruct = vpx_image.allocate(arena);
+        final MemorySegment imageStruct = vpx_image.allocate(arena);
 
-            // Call vpx_img_wrap to initialize the struct with our data
-            final MemorySegment result =
-                    VpxFFI.vpx_img_wrap(imageStruct, format, width, height, 1, dataSegment);
+        // Call vpx_img_wrap to initialize the struct with our data
+        final MemorySegment result =
+                VpxFFI.vpx_img_wrap(imageStruct, format, width, height, 1, dataSegment);
 
-            if (result.address() == 0L) {
-                throw new VpxException(-1, "Failed to wrap image memory in vpx_img_wrap");
-            }
-
-            // We own the data arena, we must keep the struct arena alive until close.
-            return new VpxImage(imageStruct, arena, width, height, format);
-        } catch (final Exception e) {
-            throw e;
+        if (result.address() == 0L) {
+            throw new VpxException(-1, "Failed to wrap image memory in vpx_img_wrap");
         }
+
+        // We own the data arena, we must keep the struct arena alive until close.
+        return new VpxImage(imageStruct, arena, width, height, format);
     }
 
     @Override
