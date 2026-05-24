@@ -26,7 +26,7 @@ public record VpxEncoderConfig(
      * @param width The width of the video frame.
      * @param height The height of the video frame.
      */
-    public VpxEncoderConfig(int width, int height) {
+    public VpxEncoderConfig(final int width, final int height) {
         this(width, height, 256, 0, 1, 1, 1000);
     }
 
@@ -38,7 +38,8 @@ public record VpxEncoderConfig(
      * @param targetBitrateKbps The target bitrate in kilobits per second.
      * @param threads The number of threads to use.
      */
-    public VpxEncoderConfig(int width, int height, int targetBitrateKbps, int threads) {
+    public VpxEncoderConfig(
+            final int width, final int height, final int targetBitrateKbps, final int threads) {
         this(width, height, targetBitrateKbps, 0, threads, 1, 1000);
     }
 }

@@ -23,7 +23,11 @@ public class VpxImage implements AutoCloseable {
     private final int format;
 
     private VpxImage(
-            MemorySegment nativeImage, Arena dataArena, int width, int height, int format) {
+            final MemorySegment nativeImage,
+            final Arena dataArena,
+            final int width,
+            final int height,
+            final int format) {
         this.nativeImage = nativeImage;
         this.dataArena = dataArena;
         this.width = width;
@@ -37,7 +41,7 @@ public class VpxImage implements AutoCloseable {
      *
      * @return The MemorySegment pointer to the native image struct.
      */
-    public MemorySegment getNativeImage() {
+    public MemorySegment nativeImage() {
         return nativeImage;
     }
 
@@ -46,7 +50,7 @@ public class VpxImage implements AutoCloseable {
      *
      * @return The width in pixels.
      */
-    public int getWidth() {
+    public int width() {
         return width;
     }
 
@@ -55,7 +59,7 @@ public class VpxImage implements AutoCloseable {
      *
      * @return The height in pixels.
      */
-    public int getHeight() {
+    public int height() {
         return height;
     }
 
@@ -64,7 +68,7 @@ public class VpxImage implements AutoCloseable {
      *
      * @return The format integer flag.
      */
-    public int getFormat() {
+    public int format() {
         return format;
     }
 
@@ -77,13 +81,13 @@ public class VpxImage implements AutoCloseable {
      * @param height The height of the image
      * @return A VpxImage that MUST be closed when no longer needed.
      */
-    public static VpxImage fromByteArray(byte[] data, int width, int height) {
-        Arena arena = Arena.ofShared();
+    public static VpxImage fromByteArray(final byte[] data, final int width, final int height) {
+        final Arena arena = Arena.ofShared();
         try {
-            MemorySegment dataSegment = arena.allocate(data.length);
+            final MemorySegment dataSegment = arena.allocate(data.length);
             MemorySegment.copy(data, 0, dataSegment, ValueLayout.JAVA_BYTE, 0, data.length);
             return create(dataSegment, arena, width, height, VPX_IMG_FMT_I420);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             arena.close();
             throw e;
         }
@@ -98,31 +102,36 @@ public class VpxImage implements AutoCloseable {
      * @param height The height of the image
      * @return A VpxImage that does NOT manage the lifecycle of the passed segment.
      */
-    public static VpxImage fromMemorySegment(MemorySegment segment, int width, int height) {
-        Arena structArena = Arena.ofConfined();
+    public static VpxImage fromMemorySegment(
+            final MemorySegment segment, final int width, final int height) {
+        final Arena structArena = Arena.ofConfined();
         try {
-            MemorySegment imageStruct = vpx_image.allocate(structArena);
-            MemorySegment result =
+            final MemorySegment imageStruct = vpx_image.allocate(structArena);
+            final MemorySegment result =
                     VpxFFI.vpx_img_wrap(imageStruct, VPX_IMG_FMT_I420, width, height, 1, segment);
             if (result.address() == 0L) {
                 throw new VpxException(-1, "Failed to wrap image memory in vpx_img_wrap");
             }
             return new VpxImage(imageStruct, structArena, width, height, VPX_IMG_FMT_I420);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             structArena.close();
             throw e;
         }
     }
 
     private static VpxImage create(
-            MemorySegment dataSegment, Arena arena, int width, int height, int format) {
+            final MemorySegment dataSegment,
+            final Arena arena,
+            final int width,
+            final int height,
+            final int format) {
         // Allocate the vpx_image_t struct itself.
         // We have an arena (meaning we own the data segment), use it.
         try {
-            MemorySegment imageStruct = vpx_image.allocate(arena);
+            final MemorySegment imageStruct = vpx_image.allocate(arena);
 
             // Call vpx_img_wrap to initialize the struct with our data
-            MemorySegment result =
+            final MemorySegment result =
                     VpxFFI.vpx_img_wrap(imageStruct, format, width, height, 1, dataSegment);
 
             if (result.address() == 0L) {
@@ -131,7 +140,7 @@ public class VpxImage implements AutoCloseable {
 
             // We own the data arena, we must keep the struct arena alive until close.
             return new VpxImage(imageStruct, arena, width, height, format);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw e;
         }
     }

@@ -13,7 +13,7 @@ public class VpxException extends RuntimeException {
      * @param code The native libvpx error code.
      * @param message A descriptive error message.
      */
-    public VpxException(int code, String message) {
+    public VpxException(final int code, final String message) {
         super("Vpx Error [" + code + "]: " + message);
         this.code = code;
     }
@@ -23,7 +23,7 @@ public class VpxException extends RuntimeException {
      *
      * @return The error code.
      */
-    public int getCode() {
+    public int code() {
         return code;
     }
 }

@@ -28,9 +28,9 @@ public final class PanVpx {
             // Attempt to resolve the FFI class which triggers the static native library load
             Class.forName("org.seuffert.panvpx.ffi.VpxFFI");
             // Make a harmless call to verify it's functional
-            MemorySegment versionStr = VpxFFI.vpx_codec_version_str();
+            final MemorySegment versionStr = VpxFFI.vpx_codec_version_str();
             available = (versionStr != null && versionStr.address() != 0);
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
             // Catch all LinkageError, ExceptionInInitializerError, UnsatisfiedLinkError, etc.
             available = false;
         }
@@ -47,7 +47,7 @@ public final class PanVpx {
         if (!isLibVpxAvailable()) {
             return "N/A";
         }
-        MemorySegment versionSegment = VpxFFI.vpx_codec_version_str();
+        final MemorySegment versionSegment = VpxFFI.vpx_codec_version_str();
         if (versionSegment != null && versionSegment.address() != 0) {
             return versionSegment.getString(0);
         }
@@ -63,7 +63,7 @@ public final class PanVpx {
         if (!isLibVpxAvailable()) {
             return "N/A";
         }
-        MemorySegment buildConfigSegment = VpxFFI.vpx_codec_build_config();
+        final MemorySegment buildConfigSegment = VpxFFI.vpx_codec_build_config();
         if (buildConfigSegment != null && buildConfigSegment.address() != 0) {
             return buildConfigSegment.getString(0);
         }

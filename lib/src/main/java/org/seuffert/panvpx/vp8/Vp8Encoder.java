@@ -27,14 +27,14 @@ public class Vp8Encoder implements AutoCloseable {
      *
      * @param config The encoder configuration.
      */
-    public Vp8Encoder(VpxEncoderConfig config) {
+    public Vp8Encoder(final VpxEncoderConfig config) {
         codecCtx = vpx_codec_ctx.allocate(arena);
 
         // 1. Get the VP8 encoder interface
-        MemorySegment iface = VpxFFI.vpx_codec_vp8_cx();
+        final MemorySegment iface = VpxFFI.vpx_codec_vp8_cx();
 
         // 2. Populate default configuration
-        MemorySegment encCfg = vpx_codec_enc_cfg.allocate(arena);
+        final MemorySegment encCfg = vpx_codec_enc_cfg.allocate(arena);
         int res = VpxFFI.vpx_codec_enc_config_default(iface, encCfg, 0);
         checkError(res, "Failed to get default encoder configuration");
 
@@ -45,7 +45,7 @@ public class Vp8Encoder implements AutoCloseable {
         vpx_codec_enc_cfg.rc_dropframe_thresh(encCfg, config.frameDropThreshold());
         vpx_codec_enc_cfg.g_threads(encCfg, config.threads());
 
-        MemorySegment timebase = vpx_codec_enc_cfg.g_timebase(encCfg);
+        final MemorySegment timebase = vpx_codec_enc_cfg.g_timebase(encCfg);
         vpx_rational.num(timebase, config.timebaseNumerator());
         vpx_rational.den(timebase, config.timebaseDenominator());
 
@@ -68,11 +68,12 @@ public class Vp8Encoder implements AutoCloseable {
      * @param flags Encoding flags (e.g., VPX_EFLAG_FORCE_KF for keyframes).
      * @return A list of encoded packets.
      */
-    public List<VpxPacket> encode(VpxImage image, long pts, long duration, long flags) {
-        int res =
+    public List<VpxPacket> encode(
+            final VpxImage image, final long pts, final long duration, final long flags) {
+        final int res =
                 VpxFFI.vpx_codec_encode(
                         codecCtx,
-                        image.getNativeImage(),
+                        image.nativeImage(),
                         pts,
                         duration,
                         flags,
@@ -88,7 +89,7 @@ public class Vp8Encoder implements AutoCloseable {
      * @return A list of delayed encoded packets.
      */
     public List<VpxPacket> flush() {
-        int res =
+        final int res =
                 VpxFFI.vpx_codec_encode(
                         codecCtx, MemorySegment.NULL, 0, 0, 0, VpxFFI.VPX_DL_REALTIME());
         checkError(res, "Failed to flush encoder");
@@ -96,29 +97,30 @@ public class Vp8Encoder implements AutoCloseable {
     }
 
     private List<VpxPacket> extractPackets() {
-        List<VpxPacket> packets = new ArrayList<>();
+        final List<VpxPacket> packets = new ArrayList<>();
 
         // Reset iterator pointer to NULL (0)
         iterPtr.set(ValueLayout.ADDRESS, 0, MemorySegment.NULL);
 
         while (true) {
-            MemorySegment pktPtr = VpxFFI.vpx_codec_get_cx_data(codecCtx, iterPtr);
+            final MemorySegment pktPtr = VpxFFI.vpx_codec_get_cx_data(codecCtx, iterPtr);
             if (pktPtr.address() == 0L) {
                 break;
             }
 
             // Check if packet is a frame packet
-            int kind = vpx_codec_cx_pkt.kind(pktPtr);
+            final int kind = vpx_codec_cx_pkt.kind(pktPtr);
             if (kind == VpxFFI.VPX_CODEC_CX_FRAME_PKT()) {
                 // Get the frame struct inside the union
-                MemorySegment dataLayout = vpx_codec_cx_pkt.data(pktPtr);
+                final MemorySegment dataLayout = vpx_codec_cx_pkt.data(pktPtr);
 
-                MemorySegment bufAddress =
+                final MemorySegment bufAddress =
                         org.seuffert.panvpx.ffi.vpx_codec_cx_pkt.data.frame.buf(dataLayout);
-                long bufSize = org.seuffert.panvpx.ffi.vpx_codec_cx_pkt.data.frame.sz(dataLayout);
+                final long bufSize =
+                        org.seuffert.panvpx.ffi.vpx_codec_cx_pkt.data.frame.sz(dataLayout);
 
                 if (bufAddress.address() != 0L && bufSize > 0) {
-                    MemorySegment dataSegment = bufAddress.reinterpret(bufSize);
+                    final MemorySegment dataSegment = bufAddress.reinterpret(bufSize);
                     packets.add(new VpxPacket(dataSegment));
                 }
             }
@@ -134,10 +136,10 @@ public class Vp8Encoder implements AutoCloseable {
         arena.close();
     }
 
-    private void checkError(int res, String message) {
+    private void checkError(final int res, final String message) {
         if (res != VpxFFI.VPX_CODEC_OK()) {
-            MemorySegment errDetailPtr = VpxFFI.vpx_codec_error_detail(codecCtx);
-            String detail =
+            final MemorySegment errDetailPtr = VpxFFI.vpx_codec_error_detail(codecCtx);
+            final String detail =
                     (errDetailPtr.address() != 0L)
                             ? errDetailPtr.getString(0)
                             : "No detail available";

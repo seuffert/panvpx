@@ -19,7 +19,7 @@ class VpxPacketTest {
             final MemorySegment segment = arena.allocateFrom(ValueLayout.JAVA_BYTE, testData);
 
             final VpxPacket packet = new VpxPacket(segment);
-            assertEquals(5, packet.getSize(), "Size should be exactly 5 bytes");
+            assertEquals(5, packet.size(), "Size should be exactly 5 bytes");
 
             final ByteBuffer directBuffer = packet.asDirectBuffer();
             assertTrue(directBuffer.isDirect(), "Buffer should be a direct ByteBuffer");

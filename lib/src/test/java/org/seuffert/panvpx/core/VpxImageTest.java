@@ -21,10 +21,10 @@ class VpxImageTest {
             final MemorySegment segment = arena.allocate(frameSize);
 
             try (VpxImage image = VpxImage.fromMemorySegment(segment, width, height)) {
-                assertNotNull(image.getNativeImage(), "Native image pointer should not be null");
-                assertEquals(width, image.getWidth(), "Width should match");
-                assertEquals(height, image.getHeight(), "Height should match");
-                assertEquals(VpxImage.VPX_IMG_FMT_I420, image.getFormat(), "Format should be I420");
+                assertNotNull(image.nativeImage(), "Native image pointer should not be null");
+                assertEquals(width, image.width(), "Width should match");
+                assertEquals(height, image.height(), "Height should match");
+                assertEquals(VpxImage.VPX_IMG_FMT_I420, image.format(), "Format should be I420");
             } // VpxImage closes here. The struct arena should be closed.
 
             // The data segment's arena (our 'arena') should NOT be closed by VpxImage,
@@ -41,10 +41,10 @@ class VpxImageTest {
         final byte[] data = new byte[width * height * 3 / 2];
 
         final VpxImage image = VpxImage.fromByteArray(data, width, height);
-        assertNotNull(image.getNativeImage(), "Native image pointer should not be null");
+        assertNotNull(image.nativeImage(), "Native image pointer should not be null");
 
         // We can access the native image struct because it is alive
-        image.getNativeImage().get(ValueLayout.JAVA_BYTE, 0);
+        image.nativeImage().get(ValueLayout.JAVA_BYTE, 0);
 
         image.close();
 
@@ -52,7 +52,7 @@ class VpxImageTest {
         // IllegalStateException
         assertThrows(
                 IllegalStateException.class,
-                () -> image.getNativeImage().get(ValueLayout.JAVA_BYTE, 0),
+                () -> image.nativeImage().get(ValueLayout.JAVA_BYTE, 0),
                 "Accessing memory after close should throw IllegalStateException");
     }
 }

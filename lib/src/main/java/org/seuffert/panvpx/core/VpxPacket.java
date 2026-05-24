@@ -13,7 +13,7 @@ public class VpxPacket {
      *
      * @param dataSegment The memory segment containing the encoded data.
      */
-    public VpxPacket(MemorySegment dataSegment) {
+    public VpxPacket(final MemorySegment dataSegment) {
         this.dataSegment = dataSegment;
     }
 
@@ -22,7 +22,7 @@ public class VpxPacket {
      *
      * @return The size of the packet in bytes.
      */
-    public long getSize() {
+    public long size() {
         return dataSegment.byteSize();
     }
 
