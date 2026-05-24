@@ -31,7 +31,7 @@
         <exclude name="AvoidFieldNameMatchingMethodName"/>
         <!-- FFM Arenas often have complex lifecycles with ownership transfer -->
         <exclude name="CloseResource"/>
-        <!-- JNI wrapper and linkage error catching is intentionally generic -->
+        <!-- Native FFM linkage error catching is intentionally generic -->
         <exclude name="AvoidCatchingGenericException"/>
     </rule>
 
