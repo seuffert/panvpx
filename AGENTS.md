@@ -34,7 +34,11 @@
 - Design base classes (`AbstractVpxEncoder`) with reusability for VP9 in mind.
 - The main code resides in the `lib` module.
 
-### 5. Roadmap
+### 5. Javadoc
+- All `public` and `protected` members in `org.seuffert.panvpx` must have Javadoc.
+- `org.seuffert.panvpx.ffi` is excluded from generated docs — do not add `@see` references to it from public Javadoc.
+
+### 6. Roadmap
 - The current development plan and iterative phases are tracked in `docs/ROADMAP.md`. 
 - Always check `docs/ROADMAP.md` before starting a new phase and update it when a phase is completed.
 
