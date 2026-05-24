@@ -10,6 +10,7 @@ Developed by [Oliver Seuffert](https://gitlab.com/org.seuffert).
 - **Unified Architecture**: Single library for VP8 and VP9 encoding and decoding.
 - **Java 25+**: Uses modern Java features like `record` classes and `try-with-resources` to guarantee native memory safety with FFM `Arena`s.
 - **JPMS Ready**: Fully modularized (`org.seuffert.panvpx`), keeping internal FFM bindings safely encapsulated.
+- **Strict Quality**: Codebase heavily verified on every build via Spotless, ErrorProne, NullAway, Checkstyle, SpotBugs, and PMD.
 
 ## Cousin Project
 This library follows similar design principles to [PanOpus](https://gitlab.com/org.seuffert/panopus), a Project Panama wrapper for the Opus audio codec.

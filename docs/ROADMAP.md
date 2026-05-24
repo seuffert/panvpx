@@ -36,3 +36,4 @@ Iterative implementation of a Java/JDK25 wrapper for libvpx using Project Panama
 - Language: Pure Java with JDK 25 (Refactored from Kotlin).
 - Architecture: Unified library for VP8/VP9, Encoder/Decoder inside `lib` module.
 - Memory: "Easy direct memory" - users pass `byte[]` (wrapper handles copy) or `MemorySegment`/`ByteBuffer` (direct native passing).
+- Quality: Static analysis enforced on every build (Spotless, ErrorProne, NullAway, Checkstyle, SpotBugs, PMD). All warnings treated as errors.
