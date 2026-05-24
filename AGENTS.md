@@ -37,3 +37,24 @@
 ### 5. Roadmap
 - The current development plan and iterative phases are tracked in `docs/ROADMAP.md`. 
 - Always check `docs/ROADMAP.md` before starting a new phase and update it when a phase is completed.
+
+## Versioning / Release process
+
+To bump the project version (e.g. to `vX.Y.Z`):
+
+1. **Verify the build is green** — run `./gradlew build --rerun-tasks` and confirm
+   `BUILD SUCCESSFUL`.
+2. **Update `gradle.properties`** — change `version=<old>` to `version=<new>` (no `v` prefix).
+3. **Update `README.md`** — update the version in both the Maven `<version>` tag and the
+   Gradle `implementation(...)` string.
+4. **Update `CHANGELOG.md`**:
+   - Retrieve commits since the last tag: `git log <last-tag>..HEAD --oneline` (if the tag
+     does not exist locally, just use `git log --oneline | head -20` and find the bump commit).
+   - Promote the `[Unreleased]` section to `[X.Y.Z] — YYYY-MM-DD`, adding any commits not
+     yet documented (dependency upgrades, CI fixes, etc.).
+   - Add a new empty `## [Unreleased]` section above it.
+   - Update the comparison links at the bottom of the file.
+5. **Check `AGENTS.md`** — update if any new conventions were introduced in this release.
+6. **Verify the build is still green** — run `./gradlew build --rerun-tasks` again.
+7. **Commit** — `git add -A && git commit -m "bumping version to vX.Y.Z"`.
+8. **Tag** (triggers CI release) — `git tag vX.Y.Z && git push --follow-tags`.
