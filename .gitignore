@@ -1,0 +1,7 @@
+.gradle
+build
+.kotlin
+jextract
+*.code-workspace
+.vscode
+local.gradle.properties
