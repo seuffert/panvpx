@@ -26,6 +26,20 @@ tasks.withType<JavaCompile> {
     options.compilerArgs.add("-Xlint:-preview")
 }
 
+tasks.withType<Javadoc> {
+    (options as StandardJavadocDocletOptions).apply {
+        // -Xdoclint/package:[-]<packages>
+        // Note: ".*" suffix means only sub-packages, NOT the package itself.
+        // Use both "pkg" and "pkg.*" to cover the package and all sub-packages.
+        addBooleanOption(
+            "Xdoclint/package:-org.seuffert.panvpx.ffi,-org.seuffert.panvpx.ffi.*",
+            true
+        )
+        // Keep internal out of the generated HTML output
+        addStringOption("exclude", "org.seuffert.panvpx.ffi")
+    }
+}
+
 tasks.test {
     useJUnitPlatform()
     jvmArgs("--enable-native-access=ALL-UNNAMED")

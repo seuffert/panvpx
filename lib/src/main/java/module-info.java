@@ -1,3 +1,6 @@
+/**
+ * The core module for PanVPX, a Java Project Panama FFM wrapper for libvpx.
+ */
 module org.seuffert.panvpx {
     exports org.seuffert.panvpx;
     exports org.seuffert.panvpx.core;

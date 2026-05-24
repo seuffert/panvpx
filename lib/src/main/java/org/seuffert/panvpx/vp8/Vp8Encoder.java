@@ -24,6 +24,12 @@ public class Vp8Encoder implements AutoCloseable {
     private final MemorySegment codecCtx;
     private final MemorySegment iterPtr;
 
+    /**
+     * Initializes the VP8 Encoder with the provided configuration.
+     * The encoder allocates native memory that must be released by calling {@link #close()}.
+     *
+     * @param config The encoder configuration.
+     */
     public Vp8Encoder(VpxEncoderConfig config) {
         codecCtx = vpx_codec_ctx.allocate(arena);
 
@@ -72,6 +78,8 @@ public class Vp8Encoder implements AutoCloseable {
 
     /**
      * Flushes the encoder, returning any delayed packets.
+     *
+     * @return A list of delayed encoded packets.
      */
     public List<VpxPacket> flush() {
         int res = VpxFFI.vpx_codec_encode(codecCtx, MemorySegment.NULL, 0, 0, 0, VpxFFI.VPX_DL_REALTIME());
@@ -110,6 +118,9 @@ public class Vp8Encoder implements AutoCloseable {
         return packets;
     }
 
+    /**
+     * Destroys the native encoder context and releases all associated native memory.
+     */
     @Override
     public void close() {
         VpxFFI.vpx_codec_destroy(codecCtx);

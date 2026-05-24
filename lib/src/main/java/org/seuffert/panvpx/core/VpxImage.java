@@ -13,7 +13,9 @@ import java.lang.foreign.ValueLayout;
  */
 public class VpxImage implements AutoCloseable {
 
-    // Formats defined in vpx_image.h
+    /**
+     * Standard VPX Image Format for I420 planar data.
+     */
     public static final int VPX_IMG_FMT_I420 = 0x102; // VPX_IMG_FMT_PLANAR | VPX_IMG_FMT_UV_FLIP | 2
 
     private final MemorySegment nativeImage;
@@ -30,18 +32,39 @@ public class VpxImage implements AutoCloseable {
         this.format = format;
     }
 
+    /**
+     * Gets the underlying native pointer to the {@code vpx_image_t} structure.
+     * This is intended for internal FFI use within the library.
+     *
+     * @return The MemorySegment pointer to the native image struct.
+     */
     public MemorySegment getNativeImage() {
         return nativeImage;
     }
 
+    /**
+     * Gets the width of the image frame.
+     *
+     * @return The width in pixels.
+     */
     public int getWidth() {
         return width;
     }
 
+    /**
+     * Gets the height of the image frame.
+     *
+     * @return The height in pixels.
+     */
     public int getHeight() {
         return height;
     }
 
+    /**
+     * Gets the raw pixel format of the image.
+     *
+     * @return The format integer flag.
+     */
     public int getFormat() {
         return format;
     }
@@ -56,7 +79,7 @@ public class VpxImage implements AutoCloseable {
      * @return A VpxImage that MUST be closed when no longer needed.
      */
     public static VpxImage fromByteArray(byte[] data, int width, int height) {
-        Arena arena = Arena.ofConfined();
+        Arena arena = Arena.ofShared();
         try {
             MemorySegment dataSegment = arena.allocate(data.length);
             MemorySegment.copy(data, 0, dataSegment, ValueLayout.JAVA_BYTE, 0, data.length);
@@ -84,7 +107,7 @@ public class VpxImage implements AutoCloseable {
         // Allocate the vpx_image_t struct itself.
         // If we have an arena (meaning we own the data segment), use it.
         // Otherwise, allocate a short-lived arena just for the struct.
-        Arena structArena = arena != null ? arena : Arena.ofConfined();
+        Arena structArena = arena != null ? arena : Arena.ofShared();
 
         try {
             MemorySegment imageStruct = vpx_image.allocate(structArena);
