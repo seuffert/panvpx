@@ -8,6 +8,7 @@ Iterative implementation of a Java/JDK25 wrapper for libvpx using Project Panama
 1. **Phase 1: Foundation & Bindings** (Completed)
    - Set up Gradle project targeting JDK 25 in a `lib` module
    - Generate FFM bindings using `jextract` for `vpx_encoder.h`, `vpx_image.h`, and `vp8cx.h`
+   - Setup JPMS (`module-info.java`) to encapsulate bindings.
 2. **Phase 2: Core Memory Abstractions** (Completed)
    - Implement `VpxImage` (input) and `VpxPacket` (output) in Java, using `MemorySegment`
 3. **Phase 3: VP8 Encoder** (Completed)

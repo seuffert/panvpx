@@ -9,6 +9,7 @@ Developed by [Oliver Seuffert](https://gitlab.com/org.seuffert).
 - **Easy Direct Memory**: Designed with an easy-to-use API that accepts standard `byte[]` arrays, while also natively supporting Java `MemorySegment` and direct `ByteBuffer`s to eliminate unnecessary memory copying ("zero-copy" friendly).
 - **Unified Architecture**: Single library for VP8 and VP9 encoding and decoding.
 - **Java 25+**: Uses modern Java features like `record` classes and `try-with-resources` to guarantee native memory safety with FFM `Arena`s.
+- **JPMS Ready**: Fully modularized (`org.seuffert.panvpx`), keeping internal FFM bindings safely encapsulated.
 
 ## Cousin Project
 This library follows similar design principles to [PanOpus](https://gitlab.com/org.seuffert/panopus), a Project Panama wrapper for the Opus audio codec.

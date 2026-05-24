@@ -20,7 +20,7 @@ import java.util.List;
  */
 public class Vp8Encoder implements AutoCloseable {
 
-    private final Arena arena = Arena.ofConfined();
+    private final Arena arena = Arena.ofShared();
     private final MemorySegment codecCtx;
     private final MemorySegment iterPtr;
 

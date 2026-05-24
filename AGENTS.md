@@ -10,20 +10,24 @@
 ## Best Practices & Guidelines
 
 ### 1. Memory Management (Critical)
-- **Always use `Arena`**: Native memory MUST be allocated using an `Arena`. 
-- **Java `try-with-resources`**: Whenever an `Arena.ofConfined()` is opened for temporary scope, wrap it in a `try-with-resources` block to ensure memory is properly cleaned up.
-- **Class-bound Arenas**: If an encoder/decoder class holds native state (`vpx_codec_ctx_t`), the class must implement `AutoCloseable`. The class should instantiate its own `Arena` and close it in the `close()` method.
-- Never let native memory leak into the Garbage Collector's hands unmanaged.
+- **Always use `Arena`**: Native memory MUST be allocated using an `Arena`. Never use `Arena.global()` in library code.
+- **Per-call temporary allocations**: Open `Arena.ofConfined()` with a `try-with-resources` block inside the method body. Never use `Arena.ofShared()` for per-call allocations.
+- **Long-lived native buffers (Class-bound Arenas)**: If an encoder/decoder spans multiple calls, store the `Arena` as a `private final` field and close it in the `close()` method. Use `Arena.ofShared()` for these long-lived arenas so that the instance can be created, used, and closed on different threads (the common pattern in real-time streaming pipelines).
+- **Thread-safety consequence**: `Arena.ofShared()` removes thread affinity from long-lived native buffers, allowing create/use/close to happen on different threads. However, **`libvpx` state is NOT concurrently thread-safe**: calling two methods simultaneously from separate threads on the same instance will silently corrupt encoder/decoder state. External serialization (e.g., a single-thread executor or `synchronized` block) is required if the same instance is shared across threads.
 
 ### 2. Project Panama (FFM API) specific
+- **Java 25 toolchain**: Use current FFM API idioms (`MemorySegment`, `Arena`, `FunctionDescriptor`, `Linker`, etc.).
+- Do not introduce `sun.misc.Unsafe`, JNI, or any other native-access mechanism.
 - Use `MemorySegment.ofBuffer()` for mapping Java direct `ByteBuffer` instances.
 - Use `MemorySegment.copy()` for bulk data copying between heap `byte[]` arrays and native memory.
 - Generated `jextract` bindings reside in `org.seuffert.panvpx.ffi`. Treat these as internal. Hide all `MemorySegment` pointers, `ValueLayout` constants, and `jextract` structs from the public API.
 
-### 3. Java Idioms
+### 3. Java Idioms & JPMS
 - Favor `record` classes for configuration (e.g., `VpxEncoderConfig`).
 - Provide overloaded constructors to simulate default parameters and simplify the API.
 - Map native C error codes (`vpx_codec_err_t`) to a custom Java Exception (e.g., `class VpxException extends RuntimeException`).
+- **JPMS Module**: The library is built as a Java Platform Module System (JPMS) module named `org.seuffert.panvpx`. 
+- **Internal Bindings**: Only export the top-level, `core`, `vp8`, and `vp9` packages. NEVER export the `org.seuffert.panvpx.ffi` package.
 
 ### 4. Implementation Iteration
 - Development starts strictly with the VP8 Encoder before moving to VP8 Decoder, and finally VP9.
