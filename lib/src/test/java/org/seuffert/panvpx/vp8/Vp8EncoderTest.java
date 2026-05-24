@@ -1,9 +1,11 @@
 package org.seuffert.panvpx.vp8;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.seuffert.panvpx.core.VpxException;
 import org.seuffert.panvpx.core.VpxImage;
 import org.seuffert.panvpx.core.VpxPacket;
 
@@ -49,5 +51,30 @@ class Vp8EncoderTest {
 
         assertTrue(
                 packetsReceived > 0, "Should have received at least one packet from the encoder");
+    }
+
+    @Test
+    void testInvalidConfigThrowsException() {
+        // 0 width/height is invalid and should be rejected by libvpx during init
+        final VpxEncoderConfig config = new VpxEncoderConfig(0, 0);
+        assertThrows(
+                VpxException.class,
+                () -> new Vp8Encoder(config),
+                "Should throw exception on invalid configuration");
+    }
+
+    @Test
+    void testEncoderUseAfterCloseThrowsException() {
+        final VpxEncoderConfig config = new VpxEncoderConfig(320, 240);
+        final Vp8Encoder encoder = new Vp8Encoder(config);
+        encoder.close();
+
+        final byte[] dummyData = new byte[320 * 240 * 3 / 2];
+        try (VpxImage image = VpxImage.fromByteArray(dummyData, 320, 240)) {
+            assertThrows(
+                    IllegalStateException.class,
+                    () -> encoder.encode(image, 0, 1000, 0),
+                    "Should throw IllegalStateException when using closed arena");
+        }
     }
 }
