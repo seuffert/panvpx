@@ -116,10 +116,11 @@ public class Vp8Encoder implements AutoCloseable {
 
                 final MemorySegment bufAddress = vpx_codec_cx_pkt.data.frame.buf(dataLayout);
                 final long bufSize = vpx_codec_cx_pkt.data.frame.sz(dataLayout);
+                final long pktFlags = vpx_codec_cx_pkt.data.frame.flags(dataLayout);
 
                 if (bufAddress.address() != 0L && bufSize > 0) {
                     final MemorySegment dataSegment = bufAddress.reinterpret(bufSize);
-                    packets.add(new VpxPacket(dataSegment));
+                    packets.add(new VpxPacket(dataSegment, pktFlags));
                 }
             }
         }

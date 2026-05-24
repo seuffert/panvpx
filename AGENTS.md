@@ -33,6 +33,7 @@
 - Development starts strictly with the VP8 Encoder before moving to VP8 Decoder, and finally VP9.
 - Design base classes (`AbstractVpxEncoder`) with reusability for VP9 in mind.
 - The main code resides in the `lib` module.
+- **Before Committing**: Always run `./gradlew build --rerun-tasks` to ensure a clean build and no hidden static analysis failures.
 
 ### Static analysis
 
