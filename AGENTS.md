@@ -1,4 +1,4 @@
-# AI Agent Instructions for PanVPX
+# AI Agent Instructions for panvpx
 
 ## Project Context
 - **Language**: Java

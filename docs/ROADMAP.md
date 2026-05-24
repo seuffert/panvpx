@@ -1,6 +1,6 @@
 # ROADMAP
 
-## Plan: PanVPX FFM Wrapper
+## Plan: panvpx FFM Wrapper
 
 Iterative implementation of a Java/JDK25 wrapper for libvpx using Project Panama FFM, prioritizing an "easy direct memory" approach.
 

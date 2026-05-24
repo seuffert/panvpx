@@ -1,6 +1,6 @@
-# PanVPX
+# panvpx
 
-PanVPX is a lightweight, JNI-free wrapper for `libvpx` (VP8/VP9 Video Codec), written in pure Java and utilizing Java's Project Panama (FFM API) on JDK 25+.
+panvpx is a lightweight, JNI-free wrapper for `libvpx` (VP8/VP9 Video Codec), written in pure Java and utilizing Java's Project Panama (FFM API) on JDK 25+.
 
 Developed by [Oliver Seuffert](https://gitlab.com/org.seuffert).
 

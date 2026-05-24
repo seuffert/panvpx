@@ -3,7 +3,7 @@ package org.seuffert.panvpx;
 import java.lang.foreign.MemorySegment;
 import org.seuffert.panvpx.ffi.VpxFFI;
 
-/** Global utility entry point for the PanVPX library. */
+/** Global utility entry point for the panvpx library. */
 public final class PanVpx {
 
     private static boolean checked;
