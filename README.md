@@ -26,4 +26,4 @@ This library follows similar design principles to [PanOpus](https://gitlab.com/o
 - System `libvpx` installed (e.g., `apt install libvpx-dev` or `brew install libvpx`)
 
 ## License
-Open Source.
+Licensed under the [Apache License, Version 2.0](LICENSE).

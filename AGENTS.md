@@ -5,6 +5,7 @@
 - **JDK Version**: JDK 25+
 - **Native Interop**: Project Panama (Foreign Function & Memory API - FFM)
 - **Target Native Library**: `libvpx`
+- **License**: Apache License 2.0
 - **Goal**: Provide an easy-to-use VP8/VP9 encoder/decoder API that avoids zero-copy complexity for beginners (using standard `byte[]`), but provides an "easy direct memory" path (using `MemorySegment`) for advanced users to avoid unnecessary array copies.
 
 ## Best Practices & Guidelines
