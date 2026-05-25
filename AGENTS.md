@@ -107,4 +107,10 @@ To bump the project version (e.g. to `vX.Y.Z`):
 5. **Check `AGENTS.md`** — update if any new conventions were introduced in this release.
 6. **Verify the build is still green** — run `./gradlew build --rerun-tasks` again.
 7. **Commit** — `git add -A && git commit -m "bumping version to vX.Y.Z"`.
-8. **Tag** (triggers CI release) — `git tag vX.Y.Z && git push --follow-tags`.
+8. **Tag and push** (triggers CI release):
+   ```fish
+   git tag vX.Y.Z && git push && git push origin vX.Y.Z
+   ```
+   > **Note:** `git push --follow-tags` only pushes tags attached to commits that are part of the
+   > current push. If the branch is already up-to-date on the remote, the tag will be silently
+   > skipped. Always push the tag explicitly with `git push origin vX.Y.Z`.
