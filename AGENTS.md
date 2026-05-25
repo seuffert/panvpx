@@ -107,7 +107,8 @@ To bump the project version (e.g. to `vX.Y.Z`):
 5. **Check `AGENTS.md`** — update if any new conventions were introduced in this release.
 6. **Verify the build is still green** — run `./gradlew build --rerun-tasks` again.
 7. **Commit** — `git add -A && git commit -m "bumping version to vX.Y.Z"`.
-8. **Tag and push** (triggers CI release):
+8. **Tag and push** — the CI pipeline's `release` stage will automatically create a GitLab
+   Release (with a CHANGELOG link and a JAR asset) once the `build_and_test` job succeeds:
    ```fish
    git tag vX.Y.Z && git push && git push origin vX.Y.Z
    ```

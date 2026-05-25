@@ -26,6 +26,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Vp8Encoder` and `Vp8Decoder` refactored as thin `final` subclasses of the new abstract bases;
   public API is unchanged.
 - `VpxEncoderConfig` and `VpxDecoderConfig` are now in `org.seuffert.panvpx.core` (package change).
+- README "Cousin Project" section renamed to "See Also".
+
+### CI
+- Added CI pipeline `release` stage: pushing a `vX.Y.Z` tag now automatically creates a GitLab
+  Release (with CHANGELOG link and JAR asset) once the `build_and_test` job succeeds.
+- Added Latest Release, CI pipeline status, Maven Central, and Java 25+ badges to README.
 
 ## [0.1.0] — 2026-05-25
 
