@@ -110,10 +110,23 @@ To bump the project version (e.g. to `vX.Y.Z`):
 6. **Verify the build is still green** — run `./gradlew build --rerun-tasks` again.
 7. **Commit** — `git add -A && git commit -m "bumping version to vX.Y.Z"`.
 8. **Tag and push** — the CI pipeline's `release` stage will automatically create a GitLab
-   Release (with a CHANGELOG link and a JAR asset) once the `build_and_test` job succeeds:
+   Release (with a CHANGELOG link and a JAR asset) once the `build_and_test` job succeeds.
+
+   Create an **annotated tag** with a human-readable release description:
    ```fish
-   git tag vX.Y.Z && git push && git push origin vX.Y.Z
+   git tag -a vX.Y.Z -m "Release vX.Y.Z
+
+   <concise, user-facing summary of what changed since the last release>
+   "
+   git push && git push origin vX.Y.Z
    ```
-   > **Note:** `git push --follow-tags` only pushes tags attached to commits that are part of the
-   > current push. If the branch is already up-to-date on the remote, the tag will be silently
-   > skipped. Always push the tag explicitly with `git push origin vX.Y.Z`.
+   The tag message must be a **condensed, user-friendly description** — not a raw list of
+   commits. Rewrite the key changes into short, readable prose that answers "what is new or
+   fixed for users?". Omit internal refactors, CI tweaks, and test-only changes unless they
+   affect observable behaviour. A good tag message is 3–8 bullet points or 2–4 short
+   paragraphs, written for a developer consuming the library rather than for a contributor
+   reading the git log.
+
+   > **Note:** `git push --follow-tags` only pushes tags attached to commits that are part of
+   > the current push. If the branch is already up-to-date on the remote, the tag will be
+   > silently skipped. Always push the tag explicitly with `git push origin vX.Y.Z`.
