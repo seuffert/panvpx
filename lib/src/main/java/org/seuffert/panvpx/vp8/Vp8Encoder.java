@@ -18,6 +18,13 @@ import org.seuffert.panvpx.ffi.vpx_rational;
 /** VP8 Video Encoder using libvpx via Project Panama FFM API. */
 public class Vp8Encoder implements AutoCloseable {
 
+    /**
+     * Encoding flag that forces the next frame to be encoded as a key frame (IDR / intra-only).
+     * Pass this value as the {@code flags} argument to {@link #encode} when a seek point is
+     * required (e.g., at the start of a new segment or after a stream reset).
+     */
+    public static final long VPX_EFLAG_FORCE_KF = VpxFFI.VPX_EFLAG_FORCE_KF();
+
     private final Arena arena;
     private final MemorySegment codecCtx;
     private final MemorySegment iterPtr;
@@ -83,7 +90,7 @@ public class Vp8Encoder implements AutoCloseable {
      * @param image The VpxImage containing the uncompressed frame data.
      * @param pts The presentation timestamp of the frame.
      * @param duration The duration to show the frame.
-     * @param flags Encoding flags (e.g., {@code VPX_EFLAG_FORCE_KF} for keyframes).
+     * @param flags Encoding flags (e.g., {@link #VPX_EFLAG_FORCE_KF} to force a key frame).
      * @return A list of encoded packets.
      */
     public List<VpxPacket> encode(
