@@ -16,7 +16,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `VpxPacket` now exposes all four libvpx frame-flag constants (`VPX_FRAME_IS_KEY`,
   `VPX_FRAME_IS_DROPPABLE`, `VPX_FRAME_IS_INVISIBLE`, `VPX_FRAME_IS_FRAGMENT`) with
   corresponding helper methods (`isKeyFrame()`, `isDroppable()`, `isInvisible()`, `isFragment()`).
+- Extended `Vp8DecoderTest` with 5 additional tests covering multi-frame streaming, the `byte[]`
+  decode path, plane/stride accessor correctness, invalid plane index bounds, and cross-thread
+  decoder usage (`Arena.ofShared()` contract).
 
+### Fixed
+- `VpxImage.getPlane()` and `VpxImage.getStride()` incorrectly accepted plane index 3 (the
+  unused native alpha slot in the C struct). Valid range is now restricted to [0, 2] only.
+- `Vp8Decoder.decode()` Javadoc (all three overloads) lacked an explicit lifetime warning.
+  The returned `VpxImage` instances wrap libvpx-internal buffers that are only valid until the
+  next `decode()` call or `close()`; this is now clearly stated.
 ## [0.0.1] — 2026-05-25
 
 ### Added
