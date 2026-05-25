@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `AbstractVpxEncoder.VPX_EFLAG_FORCE_KF` replaces the former `Vp8Encoder.VPX_EFLAG_FORCE_KF`
   so the constant is accessible for both VP8 and VP9 encoders.
 - `Vp9EncoderTest` and `Vp9DecoderTest` with full coverage mirroring the VP8 test suites.
+- Additional test coverage verifying `getCodecName()` and exact native libvpx error codes in `VpxException`.
 - JPMS module now exports `org.seuffert.panvpx.vp9`.
 
 ### Changed
