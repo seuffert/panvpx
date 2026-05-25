@@ -10,14 +10,14 @@ Developed by [Oliver Seuffert](https://gitlab.com/org.seuffert).
 
 - **JNI-free**: Native calls via Project Panama FFM — no JNI glue code, no native compilation step.
 - **Simple and advanced paths**: Pass standard `byte[]` arrays for ease of use; pass `MemorySegment` or direct `ByteBuffer` for zero-copy performance.
-- **VP8 and VP9**: Single library for encoding and decoding (VP8 encoding is stable; VP8 decoding and VP9 support are in progress).
+- **VP8 and VP9**: Single library for encoding and decoding (VP8 encoding and decoding are stable; VP9 support is in progress).
 - **Java 25+**: Uses `record` types, `try-with-resources`, and `Arena`-scoped memory for safe native memory management.
 - **JPMS Ready**: Fully modularized as `org.seuffert.panvpx`; internal FFM bindings are never exported.
 - **Strict Quality**: Every build verified by Spotless, ErrorProne, NullAway, Checkstyle, SpotBugs, and PMD — all warnings treated as errors.
 
 ## Status
 
-> **Work in Progress** — VP8 encoding is complete and stable. VP8 decoding and VP9 support are upcoming (see [docs/ROADMAP.md](docs/ROADMAP.md)).
+> **Work in Progress** — VP8 encoding and decoding are complete and stable. VP9 support is upcoming (see [docs/ROADMAP.md](docs/ROADMAP.md)).
 
 ## Requirements
 
@@ -137,7 +137,7 @@ All static analysis checks run as part of `build`. To regenerate the jextract FF
 ```fish
 rm -rf lib/src/main/java/org/seuffert/panvpx/ffi/*; and \
 ./jextract/bin/jextract -t org.seuffert.panvpx.ffi --output lib/src/main/java -l vpx --header-class-name VpxFFI \
-  /usr/include/vpx/vp8cx.h /usr/include/vpx/vp8dx.h
+  /usr/include/vpx/vp8cx.h /usr/include/vpx/vp8dx.h /usr/include/vpx/vpx_decoder.h
 ```
 
 ## Contributing

@@ -16,11 +16,11 @@ Iterative implementation of a Java/JDK25 wrapper for libvpx using Project Panama
    - Create `VpxEncoderConfig` record with convenience constructors
    - Implement `Vp8Encoder` with `Arena`-scoped lifecycle, `.encode()`, and `.flush()`
    - JUnit 5 test suite covering synthetic frame encoding and lifecycle edge cases
-4. **Phase 4: VP8 Decoder** (*depends on 3*) ✅ In Progress
-   - Fix jextract bindings to include `/usr/include/vpx/vpx_decoder.h`
-   - Update `VpxImage` with codec-owned frame wrapper, `toByteArray()`, and zero-copy accessors
-   - Implement `VpxDecoderConfig` and `Vp8Decoder`
-   - Test end-to-end encode and decode in `Vp8DecoderTest`
+4. **Phase 4: VP8 Decoder** (*depends on 3*) ✅ Completed
+   - Fixed jextract bindings to include `/usr/include/vpx/vpx_decoder.h`
+   - Updated `VpxImage` with codec-owned frame wrapper, `toByteArray()`, and zero-copy accessors
+   - Implemented `VpxDecoderConfig` and `Vp8Decoder`
+   - End-to-end encode/decode test suite in `Vp8DecoderTest`
 5. **Phase 5: VP9 & Abstraction** (*depends on 4*)
    - Extract shared logic into `AbstractVpxEncoder` / `AbstractVpxDecoder`
    - Add `Vp9Encoder` and `Vp9Decoder` implementations
