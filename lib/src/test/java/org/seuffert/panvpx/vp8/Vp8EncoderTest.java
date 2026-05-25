@@ -2,6 +2,7 @@ package org.seuffert.panvpx.vp8;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -15,6 +16,13 @@ import org.seuffert.panvpx.core.VpxImage;
 import org.seuffert.panvpx.core.VpxPacket;
 
 class Vp8EncoderTest {
+
+    @Test
+    void testGetCodecName() {
+        try (Vp8Encoder encoder = new Vp8Encoder(new VpxEncoderConfig(320, 240))) {
+            assertEquals("VP8", encoder.getCodecName(), "Codec name should be VP8");
+        }
+    }
 
     @Test
     void testEncodingSyntheticFrame() {
@@ -62,10 +70,12 @@ class Vp8EncoderTest {
     void testInvalidConfigThrowsException() {
         // 0 width/height is invalid and should be rejected by libvpx during init
         final VpxEncoderConfig config = new VpxEncoderConfig(0, 0);
-        assertThrows(
-                VpxException.class,
-                () -> new Vp8Encoder(config),
-                "Should throw exception on invalid configuration");
+        final VpxException ex =
+                assertThrows(
+                        VpxException.class,
+                        () -> new Vp8Encoder(config),
+                        "Should throw exception on invalid configuration");
+        assertEquals(8, ex.code(), "Error code should be VPX_CODEC_INVALID_PARAM (8)");
     }
 
     /**

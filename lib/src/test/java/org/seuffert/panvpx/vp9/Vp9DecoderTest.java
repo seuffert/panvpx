@@ -21,6 +21,13 @@ import org.seuffert.panvpx.core.VpxPacket;
 class Vp9DecoderTest {
 
     @Test
+    void testGetCodecName() {
+        try (Vp9Decoder decoder = new Vp9Decoder(new VpxDecoderConfig())) {
+            assertEquals("VP9", decoder.getCodecName(), "Codec name should be VP9");
+        }
+    }
+
+    @Test
     void testEndToEndEncodeDecode() {
         final int width = 320;
         final int height = 240;
@@ -78,10 +85,12 @@ class Vp9DecoderTest {
         final byte[] badData = {(byte) 0x00, (byte) 0x01, (byte) 0x02, (byte) 0x03, (byte) 0x04};
 
         try (Vp9Decoder decoder = new Vp9Decoder(new VpxDecoderConfig())) {
-            assertThrows(
-                    VpxException.class,
-                    () -> decoder.decode(badData),
-                    "Should throw exception on invalid bitstream data");
+            final VpxException ex =
+                    assertThrows(
+                            VpxException.class,
+                            () -> decoder.decode(badData),
+                            "Should throw exception on invalid bitstream data");
+            assertTrue(ex.code() != 0, "Error code should be non-zero");
         }
     }
 
