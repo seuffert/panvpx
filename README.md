@@ -1,5 +1,9 @@
 # panvpx
 
+[![Latest Release](https://img.shields.io/gitlab/v/release/org.seuffert%2Fpanvpx?label=Latest%20Release)](https://gitlab.com/org.seuffert/panvpx/-/releases)
+[![CI](https://img.shields.io/gitlab/pipeline-status/org.seuffert%2Fpanvpx?branch=main&label=CI)](https://gitlab.com/org.seuffert/panvpx/-/pipelines)
+[![Maven Central](https://img.shields.io/maven-central/v/org.seuffert/panvpx)](https://central.sonatype.com/artifact/org.seuffert/panvpx)
+[![Java](https://img.shields.io/badge/Java-25%2B-orange?logo=openjdk)](https://openjdk.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 panvpx is a lightweight, JNI-free Java wrapper for [libvpx](https://www.webmproject.org/code/) (VP8/VP9 video codec). It uses the [Project Panama Foreign Function & Memory (FFM) API](https://openjdk.org/jeps/454) — no JNI glue code required.
@@ -148,7 +152,7 @@ Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) before
 
 See [CHANGELOG.md](CHANGELOG.md) for a history of notable changes.
 
-## Cousin Project
+## See Also
 
 [PanOpus](https://gitlab.com/org.seuffert/panopus) — a Project Panama FFM wrapper for the Opus audio codec, following the same design principles.
 
