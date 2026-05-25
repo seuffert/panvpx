@@ -3,6 +3,7 @@ package org.seuffert.panvpx.core;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.seuffert.panvpx.ffi.VpxFFI;
 import org.seuffert.panvpx.ffi.vpx_image;
 
@@ -20,6 +21,7 @@ public final class VpxImage implements AutoCloseable {
     private final int width;
     private final int height;
     private final int format;
+    private final AtomicBoolean closed = new AtomicBoolean();
 
     private VpxImage(
             final MemorySegment nativeImage,
@@ -153,8 +155,15 @@ public final class VpxImage implements AutoCloseable {
         return new VpxImage(imageStruct, arena, width, height, format);
     }
 
+    /**
+     * Releases the native image and its associated memory. Safe to call more than once; subsequent
+     * calls are no-ops.
+     */
     @Override
     public void close() {
+        if (!closed.compareAndSet(false, true)) {
+            return;
+        }
         // Freeing the native image structure using vpx_img_free.
         VpxFFI.vpx_img_free(nativeImage);
 

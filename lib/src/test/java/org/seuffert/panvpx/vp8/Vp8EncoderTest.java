@@ -1,5 +1,6 @@
 package org.seuffert.panvpx.vp8;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -89,5 +90,17 @@ class Vp8EncoderTest {
                     () -> encoder.encode(image, 0, 1000, 0),
                     "Should throw IllegalStateException when using closed arena");
         }
+    }
+
+    @Test
+    void testDoubleCloseIsIdempotent() {
+        final VpxEncoderConfig config = new VpxEncoderConfig(320, 240);
+        final Vp8Encoder encoder = new Vp8Encoder(config);
+
+        // First close must succeed
+        encoder.close();
+
+        // Second close must be a silent no-op — no exception, no native crash
+        assertDoesNotThrow(encoder::close, "Second close() call must be a no-op");
     }
 }

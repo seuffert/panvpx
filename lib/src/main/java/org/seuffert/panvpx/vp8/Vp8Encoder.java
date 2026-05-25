@@ -5,6 +5,7 @@ import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.seuffert.panvpx.core.VpxException;
 import org.seuffert.panvpx.core.VpxImage;
 import org.seuffert.panvpx.core.VpxPacket;
@@ -20,6 +21,7 @@ public class Vp8Encoder implements AutoCloseable {
     private final Arena arena;
     private final MemorySegment codecCtx;
     private final MemorySegment iterPtr;
+    private final AtomicBoolean closed = new AtomicBoolean();
 
     /**
      * Initializes the VP8 Encoder with the provided configuration. The encoder allocates native
@@ -144,9 +146,15 @@ public class Vp8Encoder implements AutoCloseable {
         return packets;
     }
 
-    /** Destroys the native encoder context and releases all associated native memory. */
+    /**
+     * Destroys the native encoder context and releases all associated native memory. Safe to call
+     * more than once; subsequent calls are no-ops.
+     */
     @Override
     public void close() {
+        if (!closed.compareAndSet(false, true)) {
+            return;
+        }
         VpxFFI.vpx_codec_destroy(codecCtx);
         arena.close();
     }

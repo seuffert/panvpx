@@ -1,5 +1,6 @@
 package org.seuffert.panvpx.core;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -93,5 +94,19 @@ class VpxImageTest {
                 fail("close() threw on different thread: " + errorOnOtherThread.get().getMessage());
             }
         }
+    }
+
+    @Test
+    void testDoubleCloseIsIdempotent() {
+        final int width = 320;
+        final int height = 240;
+        final byte[] data = new byte[width * height * 3 / 2];
+        final VpxImage image = VpxImage.fromByteArray(data, width, height);
+
+        // First close must succeed
+        image.close();
+
+        // Second close must be a silent no-op — no exception, no native crash
+        assertDoesNotThrow(image::close, "Second close() call must be a no-op");
     }
 }
