@@ -14,7 +14,14 @@ public class VpxPacket {
     private final long flags;
 
     /**
-     * Constructs a VpxPacket wrapping the native packet memory.
+     * Constructs a VpxPacket wrapping native packet memory. This constructor is intended for
+     * library-internal use; obtain instances from {@link org.seuffert.panvpx.vp8.Vp8Encoder#encode}
+     * or {@link org.seuffert.panvpx.vp8.Vp8Encoder#flush}.
+     *
+     * <p><strong>Memory contract:</strong> the caller is responsible for ensuring {@code
+     * dataSegment} remains valid for as long as this packet is accessed via {@link
+     * #asDirectBuffer()}. Use {@link #toByteArray()} for a safe copy that is independent of the
+     * segment lifetime.
      *
      * @param dataSegment The memory segment containing the encoded data.
      * @param flags The packet flags (e.g., keyframe).
@@ -52,11 +59,20 @@ public class VpxPacket {
     }
 
     /**
-     * "Easy direct memory" path: Returns a view of the underlying native memory as a direct
-     * ByteBuffer. No data is copied. The buffer is only valid as long as the parent encoder context
-     * has not extracted the next packet or been closed.
+     * Zero-copy path: returns a <strong>direct</strong> {@link ByteBuffer} view of the underlying
+     * native memory.
      *
-     * @return A direct ByteBuffer viewing the packet data.
+     * <p><strong>Lifetime warning:</strong> when a packet is produced by {@link
+     * org.seuffert.panvpx.vp8.Vp8Encoder}, the underlying buffer points into libvpx-internal memory
+     * that is invalidated by the next call to {@code encode()} or {@code flush()}, or when the
+     * encoder is closed. The FFM runtime provides <em>no</em> use-after-free guard for this memory
+     * — accessing the returned buffer after any of those events is silent undefined behaviour.
+     *
+     * <p>Use this method only when you will fully consume the buffer <em>before</em> the next
+     * encoder call. For any other use-case, call {@link #toByteArray()} which copies the data into
+     * a safe, GC-managed byte array.
+     *
+     * @return A direct ByteBuffer viewing the packet data. Valid only until the next encoder call.
      */
     public ByteBuffer asDirectBuffer() {
         return dataSegment.asByteBuffer();
