@@ -36,14 +36,14 @@ Developed by [Oliver Seuffert](https://gitlab.com/org.seuffert).
 <dependency>
   <groupId>org.seuffert</groupId>
   <artifactId>panvpx</artifactId>
-  <version>0.0.1</version>
+  <version>0.1.0</version>
 </dependency>
 ```
 
 ### Gradle (Kotlin DSL)
 
 ```kotlin
-implementation("org.seuffert:panvpx:0.0.1")
+implementation("org.seuffert:panvpx:0.1.0")
 ```
 
 ### JVM flag
