@@ -1,10 +1,10 @@
 # TODO: Replace this base image with a custom image that has libvpx-dev pre-installed
 # to eliminate the apt-get install step on every run and save ~1-2 min per pipeline.
 # Example Dockerfile:
-#   FROM eclipse-temurin:25-jdk-jammy
+#   FROM eclipse-temurin:26-jdk-resolute
 #   RUN apt-get update && apt-get install -y libvpx-dev && rm -rf /var/lib/apt/lists/*
 # Push it to the GitLab Container Registry and reference it here.
-image: eclipse-temurin:25-jdk-jammy
+image: eclipse-temurin:26-jdk-resolute
 
 variables:
   # Move the Gradle User Home into the project directory so it falls under GitLab's
