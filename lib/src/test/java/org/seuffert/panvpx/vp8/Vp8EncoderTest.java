@@ -63,6 +63,19 @@ class Vp8EncoderTest {
                 "Should throw exception on invalid configuration");
     }
 
+    /**
+     * Verifies that repeated constructor failures do not leak native memory. Before the fix,
+     * Arena.ofShared() was opened as a field initialiser and never closed when checkError threw.
+     * Running many iterations exposes native heap exhaustion if the leak exists.
+     */
+    @Test
+    void testConstructorFailureDoesNotLeakNativeMemory() {
+        final VpxEncoderConfig bad = new VpxEncoderConfig(0, 0);
+        for (int i = 0; i < 500; i++) {
+            assertThrows(VpxException.class, () -> new Vp8Encoder(bad));
+        }
+    }
+
     @Test
     void testEncoderUseAfterCloseThrowsException() {
         final VpxEncoderConfig config = new VpxEncoderConfig(320, 240);

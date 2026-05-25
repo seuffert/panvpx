@@ -17,6 +17,9 @@
         <exclude name="UnitTestContainsTooManyAsserts"/>
         <!-- Cannot use try-with-resources if arena ownership is transferred -->
         <exclude name="UseTryWithResources"/>
+        <!-- False positive on sentinel initial values required for Java's definite-assignment
+             analysis inside try-finally blocks (e.g. MemorySegment ctx = NULL; try { ctx = ...) -->
+        <exclude name="UnusedAssignment"/>
     </rule>
 
     <!-- Error Prone patterns -->
