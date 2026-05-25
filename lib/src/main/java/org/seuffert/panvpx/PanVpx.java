@@ -43,7 +43,7 @@ public final class PanVpx {
     /**
      * Gets the version of the underlying libvpx library.
      *
-     * @return The version string (e.g., "v1.13.0"), or "N/A" if the library is not available.
+     * @return The version string (e.g., "v1.16.0"), or "N/A" if the library is not available.
      */
     public static String getVersionString() {
         if (!isLibVpxAvailable()) {

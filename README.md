@@ -22,9 +22,11 @@ Developed by [Oliver Seuffert](https://gitlab.com/org.seuffert).
 ## Requirements
 
 - JDK 25 or higher
-- System `libvpx` installed:
-  - Debian/Ubuntu: `sudo apt install libvpx-dev`
-  - macOS (Homebrew): `brew install libvpx`
+- **libvpx 1.16.0** — the FFI bindings are generated from `libvpx 1.16.0` headers
+  (`VPX_ENCODER_ABI_VERSION = 39`). Using a different ABI version will cause
+  `VpxException` at encoder/decoder initialization.
+  - Debian/Ubuntu 26.04 (Resolute) or later: `sudo apt install libvpx-dev`
+  - macOS (Homebrew): `brew install libvpx` (verify with `pkg-config --modversion vpx`)
 
 ## Installation
 
