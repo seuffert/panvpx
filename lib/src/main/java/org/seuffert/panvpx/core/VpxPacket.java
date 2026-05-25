@@ -7,8 +7,20 @@ import java.nio.ByteBuffer;
 /** Represents a packet of encoded data output by the VPX encoder. */
 public class VpxPacket {
 
-    /** Flag indicating that this packet contains a keyframe. */
-    public static final long VPX_FRAME_IS_KEY = 1L;
+    /** Flag indicating that this packet contains a keyframe (start of a GOP). */
+    public static final long VPX_FRAME_IS_KEY = 0x1L;
+
+    /**
+     * Flag indicating that this frame can be dropped without affecting the stream (no future frame
+     * depends on this one).
+     */
+    public static final long VPX_FRAME_IS_DROPPABLE = 0x2L;
+
+    /** Flag indicating that this frame should be decoded but will not be shown. */
+    public static final long VPX_FRAME_IS_INVISIBLE = 0x4L;
+
+    /** Flag indicating that this packet is a fragment of the encoded frame. */
+    public static final long VPX_FRAME_IS_FRAGMENT = 0x8L;
 
     private final MemorySegment dataSegment;
     private final long flags;
@@ -41,12 +53,45 @@ public class VpxPacket {
     }
 
     /**
-     * Helper to check if this packet is a keyframe.
+     * Helper to check if this packet is a keyframe (start of a GOP).
      *
      * @return true if it is a keyframe.
      */
     public boolean isKeyFrame() {
         return (flags & VPX_FRAME_IS_KEY) != 0;
+    }
+
+    /**
+     * Helper to check if this frame can be dropped without affecting the stream.
+     *
+     * <p>A droppable frame has no future frames that depend on it, so it may be discarded by the
+     * application without corrupting the bitstream.
+     *
+     * @return true if this frame is droppable.
+     */
+    public boolean isDroppable() {
+        return (flags & VPX_FRAME_IS_DROPPABLE) != 0;
+    }
+
+    /**
+     * Helper to check if this frame is invisible (decoded but not displayed).
+     *
+     * @return true if this frame will not be shown.
+     */
+    public boolean isInvisible() {
+        return (flags & VPX_FRAME_IS_INVISIBLE) != 0;
+    }
+
+    /**
+     * Helper to check if this packet is a fragment of a larger encoded frame.
+     *
+     * <p>When this flag is set, the packet is one piece of a multi-packet frame. The final fragment
+     * will have this flag cleared.
+     *
+     * @return true if this packet is a fragment.
+     */
+    public boolean isFragment() {
+        return (flags & VPX_FRAME_IS_FRAGMENT) != 0;
     }
 
     /**

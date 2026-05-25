@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - VP8 decoder implementation (`Vp8Decoder`).
+- `VpxPacket` now exposes all four libvpx frame-flag constants (`VPX_FRAME_IS_KEY`,
+  `VPX_FRAME_IS_DROPPABLE`, `VPX_FRAME_IS_INVISIBLE`, `VPX_FRAME_IS_FRAGMENT`) with
+  corresponding helper methods (`isKeyFrame()`, `isDroppable()`, `isInvisible()`, `isFragment()`).
 
 ## [0.0.1] — 2026-05-25
 
