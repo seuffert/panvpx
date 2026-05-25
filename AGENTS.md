@@ -22,6 +22,13 @@
 - Use `MemorySegment.ofBuffer()` for mapping Java direct `ByteBuffer` instances.
 - Use `MemorySegment.copy()` for bulk data copying between heap `byte[]` arrays and native memory.
 - Generated `jextract` bindings reside in `org.seuffert.panvpx.ffi`. Treat these as internal. Hide all `MemorySegment` pointers, `ValueLayout` constants, and `jextract` structs from the public API.
+- **jextract bindings generation**: To regenerate bindings, run the following command from the project root (using Fish shell):
+  ```fish
+  rm -rf lib/src/main/java/org/seuffert/panvpx/ffi/*; and \
+  ./jextract/bin/jextract -t org.seuffert.panvpx.ffi --output lib/src/main/java -l vpx --header-class-name VpxFFI \
+    /usr/include/vpx/vp8cx.h /usr/include/vpx/vp8dx.h
+  ```
+  > **Note:** `--include-*` filter flags are intentionally omitted. The vpx API functions (e.g. `vpx_codec_encode`) are declared in headers *transitively* included by `vp8cx.h`/`vp8dx.h`, not in the top-level headers themselves. jextract's `--include-function` filter only matches symbols in the directly specified headers, so any pattern leaves the output empty. The generated `ffi` package is never exported from the JPMS module, so the three unavoidable glibc-origin class files (`__fsid_t.java`, `imaxdiv_t.java`, `max_align_t.java`) and the ~350 system `#define` constants in `VpxFFI.java` have no impact on library users.
 
 ### 3. Java Idioms & JPMS
 - Favor `record` classes for configuration (e.g., `VpxEncoderConfig`).
