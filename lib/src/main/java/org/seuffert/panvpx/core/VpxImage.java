@@ -3,6 +3,7 @@ package org.seuffert.panvpx.core;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
+import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.seuffert.panvpx.ffi.VpxFFI;
 import org.seuffert.panvpx.ffi.vpx_image;
@@ -202,26 +203,32 @@ public final class VpxImage implements AutoCloseable {
      * @return The stride.
      */
     public int getStride(final int planeIndex) {
-        if (planeIndex < 0 || planeIndex > 3) {
+        if (planeIndex < 0 || planeIndex > 2) {
             throw new IllegalArgumentException("Invalid plane index: " + planeIndex);
         }
         return vpx_image.stride(nativeImage, planeIndex);
     }
 
     /**
-     * Zero-copy path: returns a <strong>direct</strong> {@link java.nio.ByteBuffer} view of the
-     * specified plane. For I420 format: - Plane 0 (Y): contains height rows of getStride(0) bytes.
-     * - Plane 1 (U): contains (height + 1)/2 rows of getStride(1) bytes. - Plane 2 (V): contains
-     * (height + 1)/2 rows of getStride(2) bytes.
+     * Zero-copy path: returns a <strong>direct</strong> {@link ByteBuffer} view of the specified
+     * plane. For I420 format:
+     *
+     * <ul>
+     *   <li>Plane 0 (Y): contains {@code height} rows of {@code getStride(0)} bytes.
+     *   <li>Plane 1 (U): contains {@code (height + 1) / 2} rows of {@code getStride(1)} bytes.
+     *   <li>Plane 2 (V): contains {@code (height + 1) / 2} rows of {@code getStride(2)} bytes.
+     * </ul>
      *
      * <p><strong>Lifetime warning:</strong> For images returned by a decoder, the underlying memory
-     * is invalidated by the next call to {@code decode()} or when the decoder is closed.
+     * is invalidated by the next call to {@code decode()} or when the decoder is closed. The FFM
+     * runtime provides <em>no</em> use-after-free guard — accessing the returned buffer after any
+     * of those events is silent undefined behaviour. Use {@link #toByteArray()} for a safe copy.
      *
      * @param planeIndex The index of the plane (0 for Y, 1 for U, 2 for V).
      * @return A direct ByteBuffer viewing the plane data.
      */
-    public java.nio.ByteBuffer getPlane(final int planeIndex) {
-        if (planeIndex < 0 || planeIndex > 3) {
+    public ByteBuffer getPlane(final int planeIndex) {
+        if (planeIndex < 0 || planeIndex > 2) {
             throw new IllegalArgumentException("Invalid plane index: " + planeIndex);
         }
         final int stride = getStride(planeIndex);
@@ -230,7 +237,7 @@ public final class VpxImage implements AutoCloseable {
 
         final MemorySegment planePtr = vpx_image.planes(nativeImage, planeIndex);
         if (planePtr.address() == 0L) {
-            return java.nio.ByteBuffer.allocateDirect(0);
+            return ByteBuffer.allocateDirect(0);
         }
         return planePtr.reinterpret(size).asByteBuffer();
     }

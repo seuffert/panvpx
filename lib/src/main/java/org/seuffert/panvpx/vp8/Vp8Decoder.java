@@ -65,18 +65,28 @@ public class Vp8Decoder implements AutoCloseable {
     /**
      * Decodes a packet of encoded video.
      *
+     * <p><strong>Lifetime warning:</strong> The returned {@link VpxImage} instances wrap
+     * libvpx-internal buffers that are only valid until the next call to any {@code decode()}
+     * overload on this instance, or until the decoder is closed. Use {@link VpxImage#toByteArray()}
+     * or {@link VpxImage#getPlane(int)} and copy immediately if the data must outlive the next
+     * decode call.
+     *
      * @param packet The encoded packet.
-     * @return A list of decoded images.
+     * @return A list of decoded images valid until the next {@code decode()} call.
      */
     public List<VpxImage> decode(final VpxPacket packet) {
         return decode(MemorySegment.ofBuffer(packet.asDirectBuffer()));
     }
 
     /**
-     * Decodes encoded video data from a heap byte array.
+     * Decodes encoded video data from a heap byte array. The input data is copied to native memory
+     * before decoding.
+     *
+     * <p><strong>Lifetime warning:</strong> see {@link #decode(VpxPacket)} for the memory-lifetime
+     * contract of the returned images.
      *
      * @param data The byte array containing the encoded frame.
-     * @return A list of decoded images.
+     * @return A list of decoded images valid until the next {@code decode()} call.
      */
     public List<VpxImage> decode(final byte[] data) {
         try (Arena tempArena = Arena.ofConfined()) {
@@ -87,10 +97,13 @@ public class Vp8Decoder implements AutoCloseable {
     }
 
     /**
-     * Decodes encoded video data from a native MemorySegment.
+     * Decodes encoded video data from a native MemorySegment (zero-copy input path).
+     *
+     * <p><strong>Lifetime warning:</strong> see {@link #decode(VpxPacket)} for the memory-lifetime
+     * contract of the returned images.
      *
      * @param dataSegment The memory segment containing the encoded frame.
-     * @return A list of decoded images.
+     * @return A list of decoded images valid until the next {@code decode()} call.
      */
     public List<VpxImage> decode(final MemorySegment dataSegment) {
         final int res =
