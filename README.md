@@ -86,7 +86,7 @@ import org.seuffert.panvpx.vp8.Vp8Encoder;
 import org.seuffert.panvpx.core.VpxEncoderConfig;
 
 int width = 640, height = 480;
-VpxEncoderConfig config = new VpxEncoderConfig(width, height, /* bitrateKbps */ 512, /* threads */ 2);
+VpxEncoderConfig config = new VpxEncoderConfig(width, height, /* targetBitrateKbps */ 512, /* threads */ 2);
 
 try (Vp8Encoder encoder = new Vp8Encoder(config)) {
     // Raw I420 frame: Y plane (width*height) + U plane (width*height/4) + V plane (width*height/4)
@@ -124,6 +124,77 @@ try (VpxImage image = VpxImage.fromMemorySegment(nativeBuffer, width, height)) {
         // Zero-copy view — valid until the next encode/flush call
         ByteBuffer direct = packet.asDirectBuffer();
         // consume direct buffer...
+    }
+}
+```
+
+### VP8 decoding — simple path (`byte[]`)
+
+```java
+import java.util.List;
+import org.seuffert.panvpx.core.VpxDecoderConfig;
+import org.seuffert.panvpx.core.VpxImage;
+import org.seuffert.panvpx.vp8.Vp8Decoder;
+
+try (Vp8Decoder decoder = new Vp8Decoder(new VpxDecoderConfig())) {
+    byte[] encoded = ...; // VP8 bitstream packet
+    List<VpxImage> frames = decoder.decode(encoded);
+    for (VpxImage frame : frames) {
+        // Tightly-packed I420 copy — safe to use after the next decode() call
+        byte[] i420 = frame.toByteArray();
+        int w = frame.width();
+        int h = frame.height();
+        // use i420...
+    }
+}
+```
+
+### VP9 encoding — simple path (`byte[]`)
+
+`Vp9Encoder` accepts the same `VpxEncoderConfig` as `Vp8Encoder` and exposes an identical API. A convenience constructor is also available:
+
+```java
+import java.util.List;
+import org.seuffert.panvpx.core.VpxImage;
+import org.seuffert.panvpx.core.VpxPacket;
+import org.seuffert.panvpx.vp9.Vp9Encoder;
+
+int width = 640, height = 480;
+
+try (Vp9Encoder encoder = new Vp9Encoder(width, height)) {
+    byte[] i420Frame = new byte[width * height * 3 / 2];
+    // ... fill i420Frame with pixel data ...
+
+    try (VpxImage image = VpxImage.fromByteArray(i420Frame, width, height)) {
+        List<VpxPacket> packets = encoder.encode(image, /* pts */ 0L, /* duration */ 1L, /* flags */ 0L);
+        for (VpxPacket packet : packets) {
+            byte[] encoded = packet.toByteArray();
+            // send or store encoded bytes...
+        }
+    }
+
+    // Flush any delayed frames at end of stream
+    for (VpxPacket packet : encoder.flush()) {
+        byte[] encoded = packet.toByteArray();
+    }
+}
+```
+
+### VP9 decoding — simple path (`byte[]`)
+
+`Vp9Decoder` also provides a no-argument constructor for single-threaded decoding with auto-detected dimensions:
+
+```java
+import java.util.List;
+import org.seuffert.panvpx.core.VpxImage;
+import org.seuffert.panvpx.vp9.Vp9Decoder;
+
+try (Vp9Decoder decoder = new Vp9Decoder()) {
+    byte[] encoded = ...; // VP9 bitstream packet
+    List<VpxImage> frames = decoder.decode(encoded);
+    for (VpxImage frame : frames) {
+        byte[] i420 = frame.toByteArray();
+        // use i420...
     }
 }
 ```
