@@ -21,6 +21,7 @@ public final class VpxImage implements AutoCloseable {
     private final int width;
     private final int height;
     private final int format;
+    private final boolean isCodecOwned;
     private final AtomicBoolean closed = new AtomicBoolean();
 
     private VpxImage(
@@ -28,12 +29,14 @@ public final class VpxImage implements AutoCloseable {
             final Arena dataArena,
             final int width,
             final int height,
-            final int format) {
+            final int format,
+            final boolean isCodecOwned) {
         this.nativeImage = nativeImage;
         this.dataArena = dataArena;
         this.width = width;
         this.height = height;
         this.format = format;
+        this.isCodecOwned = isCodecOwned;
     }
 
     /**
@@ -99,6 +102,22 @@ public final class VpxImage implements AutoCloseable {
     }
 
     /**
+     * Internal factory for images returned by a decoder. The codec retains ownership of the native
+     * memory, so this wrapper will not free it.
+     *
+     * @param nativeImage The native image pointer returned by the codec.
+     * @param width The width of the image.
+     * @param height The height of the image.
+     * @param format The format of the image.
+     * @return A VpxImage that wraps the codec-owned memory.
+     */
+    @SuppressWarnings("NullAway")
+    public static VpxImage createCodecOwned(
+            final MemorySegment nativeImage, final int width, final int height, final int format) {
+        return new VpxImage(nativeImage, null, width, height, format, true);
+    }
+
+    /**
      * "Easy direct memory" path: Creates a VpxImage from an existing MemorySegment. The memory is
      * aliased without copying. This {@code VpxImage} does NOT own or close the passed segment — the
      * caller retains ownership and must keep the segment alive for the lifetime of this image.
@@ -123,7 +142,7 @@ public final class VpxImage implements AutoCloseable {
                 throw new VpxException(-1, "Failed to wrap image memory in vpx_img_wrap");
             }
             final VpxImage img =
-                    new VpxImage(imageStruct, structArena, width, height, VPX_IMG_FMT_I420);
+                    new VpxImage(imageStruct, structArena, width, height, VPX_IMG_FMT_I420, false);
             success = true;
             return img;
         } finally {
@@ -152,7 +171,7 @@ public final class VpxImage implements AutoCloseable {
         }
 
         // We own the data arena, we must keep the struct arena alive until close.
-        return new VpxImage(imageStruct, arena, width, height, format);
+        return new VpxImage(imageStruct, arena, width, height, format, false);
     }
 
     /**
@@ -164,12 +183,121 @@ public final class VpxImage implements AutoCloseable {
         if (!closed.compareAndSet(false, true)) {
             return;
         }
-        // Freeing the native image structure using vpx_img_free.
-        VpxFFI.vpx_img_free(nativeImage);
+
+        if (!isCodecOwned) {
+            // Freeing the native image structure using vpx_img_free.
+            VpxFFI.vpx_img_free(nativeImage);
+        }
 
         // Close the arena managing the data and/or the struct if we own it
         if (dataArena != null) {
             dataArena.close();
         }
+    }
+
+    /**
+     * Gets the stride (in bytes) of the specified plane.
+     *
+     * @param planeIndex The index of the plane (0 for Y, 1 for U, 2 for V).
+     * @return The stride.
+     */
+    public int getStride(final int planeIndex) {
+        if (planeIndex < 0 || planeIndex > 3) {
+            throw new IllegalArgumentException("Invalid plane index: " + planeIndex);
+        }
+        return vpx_image.stride(nativeImage, planeIndex);
+    }
+
+    /**
+     * Zero-copy path: returns a <strong>direct</strong> {@link java.nio.ByteBuffer} view of the
+     * specified plane. For I420 format: - Plane 0 (Y): contains height rows of getStride(0) bytes.
+     * - Plane 1 (U): contains (height + 1)/2 rows of getStride(1) bytes. - Plane 2 (V): contains
+     * (height + 1)/2 rows of getStride(2) bytes.
+     *
+     * <p><strong>Lifetime warning:</strong> For images returned by a decoder, the underlying memory
+     * is invalidated by the next call to {@code decode()} or when the decoder is closed.
+     *
+     * @param planeIndex The index of the plane (0 for Y, 1 for U, 2 for V).
+     * @return A direct ByteBuffer viewing the plane data.
+     */
+    public java.nio.ByteBuffer getPlane(final int planeIndex) {
+        if (planeIndex < 0 || planeIndex > 3) {
+            throw new IllegalArgumentException("Invalid plane index: " + planeIndex);
+        }
+        final int stride = getStride(planeIndex);
+        final int h = (planeIndex == 0) ? height : (height + 1) / 2;
+        final long size = (long) stride * h;
+
+        final MemorySegment planePtr = vpx_image.planes(nativeImage, planeIndex);
+        if (planePtr.address() == 0L) {
+            return java.nio.ByteBuffer.allocateDirect(0);
+        }
+        return planePtr.reinterpret(size).asByteBuffer();
+    }
+
+    /**
+     * Simple path: Copies the native image planes into a new contiguous Java byte array in I420
+     * format. This safely extracts the valid pixels even if the native image uses strided memory
+     * (where row length exceeds image width).
+     *
+     * @return A new byte array containing the tightly packed I420 image data.
+     */
+    public byte[] toByteArray() {
+        if (format != VPX_IMG_FMT_I420) {
+            throw new VpxException(-1, "Only VPX_IMG_FMT_I420 is supported for toByteArray()");
+        }
+
+        final int yWidth = width;
+        final int yHeight = height;
+        final int uvWidth = (width + 1) / 2;
+        final int uvHeight = (height + 1) / 2;
+
+        final int ySize = yWidth * yHeight;
+        final int uvSize = uvWidth * uvHeight;
+        final byte[] data = new byte[ySize + uvSize * 2];
+        final MemorySegment dataSegment = MemorySegment.ofArray(data);
+
+        long offset = 0;
+
+        // Plane 0 (Y)
+        final int yStride = getStride(0);
+        final MemorySegment yPlane = vpx_image.planes(nativeImage, 0);
+        for (int r = 0; r < yHeight; r++) {
+            MemorySegment.copy(
+                    yPlane.reinterpret((long) yStride * yHeight),
+                    (long) r * yStride,
+                    dataSegment,
+                    offset,
+                    yWidth);
+            offset += yWidth;
+        }
+
+        // Plane 1 (U)
+        final int uStride = getStride(1);
+        final MemorySegment uPlane = vpx_image.planes(nativeImage, 1);
+        for (int r = 0; r < uvHeight; r++) {
+            MemorySegment.copy(
+                    uPlane.reinterpret((long) uStride * uvHeight),
+                    (long) r * uStride,
+                    dataSegment,
+                    offset,
+                    uvWidth);
+            offset += uvWidth;
+        }
+
+        // Plane 2 (V)
+        final int vStride = getStride(2);
+        final MemorySegment vPlane = vpx_image.planes(nativeImage, 2);
+        for (int r = 0; r < uvHeight; r++) {
+            MemorySegment.copy(
+                    vPlane.reinterpret((long) vStride * uvHeight),
+                    (long) r * vStride,
+                    dataSegment,
+                    offset,
+                    uvWidth);
+            offset += uvWidth;
+        }
+
+        return data;
     }
 }

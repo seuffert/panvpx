@@ -27,7 +27,7 @@
   ```fish
   rm -rf lib/src/main/java/org/seuffert/panvpx/ffi/*; and \
   ./jextract/bin/jextract -t org.seuffert.panvpx.ffi --output lib/src/main/java -l vpx --header-class-name VpxFFI \
-    /usr/include/vpx/vp8cx.h /usr/include/vpx/vp8dx.h
+    /usr/include/vpx/vp8cx.h /usr/include/vpx/vp8dx.h /usr/include/vpx/vpx_decoder.h
   ```
   > **Note:** `--include-*` filter flags are intentionally omitted. The vpx API functions (e.g. `vpx_codec_encode`) are declared in headers *transitively* included by `vp8cx.h`/`vp8dx.h`, not in the top-level headers themselves. jextract's `--include-function` filter only matches symbols in the directly specified headers, so any pattern leaves the output empty. The generated `ffi` package is never exported from the JPMS module, so the three unavoidable glibc-origin class files (`__fsid_t.java`, `imaxdiv_t.java`, `max_align_t.java`) and the ~350 system `#define` constants in `VpxFFI.java` have no impact on library users.
 

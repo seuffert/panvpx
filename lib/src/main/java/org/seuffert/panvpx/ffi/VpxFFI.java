@@ -789,6 +789,123 @@ public class VpxFFI extends VpxFFI$shared {
     public static int VPX_CODEC_USE_HIGHBITDEPTH() {
         return VPX_CODEC_USE_HIGHBITDEPTH;
     }
+    private static final int VPX_MAXIMUM_WORK_BUFFERS = (int)8L;
+    /**
+     * {@snippet lang=c :
+     * #define VPX_MAXIMUM_WORK_BUFFERS 8
+     * }
+     */
+    public static int VPX_MAXIMUM_WORK_BUFFERS() {
+        return VPX_MAXIMUM_WORK_BUFFERS;
+    }
+    private static final int VP9_MAXIMUM_REF_BUFFERS = (int)8L;
+    /**
+     * {@snippet lang=c :
+     * #define VP9_MAXIMUM_REF_BUFFERS 8
+     * }
+     */
+    public static int VP9_MAXIMUM_REF_BUFFERS() {
+        return VP9_MAXIMUM_REF_BUFFERS;
+    }
+    private static final int VPX_CODEC_CAP_PUT_SLICE = (int)65536L;
+    /**
+     * {@snippet lang=c :
+     * #define VPX_CODEC_CAP_PUT_SLICE 65536
+     * }
+     */
+    public static int VPX_CODEC_CAP_PUT_SLICE() {
+        return VPX_CODEC_CAP_PUT_SLICE;
+    }
+    private static final int VPX_CODEC_CAP_PUT_FRAME = (int)131072L;
+    /**
+     * {@snippet lang=c :
+     * #define VPX_CODEC_CAP_PUT_FRAME 131072
+     * }
+     */
+    public static int VPX_CODEC_CAP_PUT_FRAME() {
+        return VPX_CODEC_CAP_PUT_FRAME;
+    }
+    private static final int VPX_CODEC_CAP_POSTPROC = (int)262144L;
+    /**
+     * {@snippet lang=c :
+     * #define VPX_CODEC_CAP_POSTPROC 262144
+     * }
+     */
+    public static int VPX_CODEC_CAP_POSTPROC() {
+        return VPX_CODEC_CAP_POSTPROC;
+    }
+    private static final int VPX_CODEC_CAP_ERROR_CONCEALMENT = (int)524288L;
+    /**
+     * {@snippet lang=c :
+     * #define VPX_CODEC_CAP_ERROR_CONCEALMENT 524288
+     * }
+     */
+    public static int VPX_CODEC_CAP_ERROR_CONCEALMENT() {
+        return VPX_CODEC_CAP_ERROR_CONCEALMENT;
+    }
+    private static final int VPX_CODEC_CAP_INPUT_FRAGMENTS = (int)1048576L;
+    /**
+     * {@snippet lang=c :
+     * #define VPX_CODEC_CAP_INPUT_FRAGMENTS 1048576
+     * }
+     */
+    public static int VPX_CODEC_CAP_INPUT_FRAGMENTS() {
+        return VPX_CODEC_CAP_INPUT_FRAGMENTS;
+    }
+    private static final int VPX_CODEC_CAP_FRAME_THREADING = (int)2097152L;
+    /**
+     * {@snippet lang=c :
+     * #define VPX_CODEC_CAP_FRAME_THREADING 2097152
+     * }
+     */
+    public static int VPX_CODEC_CAP_FRAME_THREADING() {
+        return VPX_CODEC_CAP_FRAME_THREADING;
+    }
+    private static final int VPX_CODEC_CAP_EXTERNAL_FRAME_BUFFER = (int)4194304L;
+    /**
+     * {@snippet lang=c :
+     * #define VPX_CODEC_CAP_EXTERNAL_FRAME_BUFFER 4194304
+     * }
+     */
+    public static int VPX_CODEC_CAP_EXTERNAL_FRAME_BUFFER() {
+        return VPX_CODEC_CAP_EXTERNAL_FRAME_BUFFER;
+    }
+    private static final int VPX_CODEC_USE_POSTPROC = (int)65536L;
+    /**
+     * {@snippet lang=c :
+     * #define VPX_CODEC_USE_POSTPROC 65536
+     * }
+     */
+    public static int VPX_CODEC_USE_POSTPROC() {
+        return VPX_CODEC_USE_POSTPROC;
+    }
+    private static final int VPX_CODEC_USE_ERROR_CONCEALMENT = (int)131072L;
+    /**
+     * {@snippet lang=c :
+     * #define VPX_CODEC_USE_ERROR_CONCEALMENT 131072
+     * }
+     */
+    public static int VPX_CODEC_USE_ERROR_CONCEALMENT() {
+        return VPX_CODEC_USE_ERROR_CONCEALMENT;
+    }
+    private static final int VPX_CODEC_USE_INPUT_FRAGMENTS = (int)262144L;
+    /**
+     * {@snippet lang=c :
+     * #define VPX_CODEC_USE_INPUT_FRAGMENTS 262144
+     * }
+     */
+    public static int VPX_CODEC_USE_INPUT_FRAGMENTS() {
+        return VPX_CODEC_USE_INPUT_FRAGMENTS;
+    }
+    private static final int VPX_CODEC_USE_FRAME_THREADING = (int)524288L;
+    /**
+     * {@snippet lang=c :
+     * #define VPX_CODEC_USE_FRAME_THREADING 524288
+     * }
+     */
+    public static int VPX_CODEC_USE_FRAME_THREADING() {
+        return VPX_CODEC_USE_FRAME_THREADING;
+    }
     private static final int VPX_IMG_FMT_NONE = (int)0L;
     /**
      * {@snippet lang=c :
@@ -5265,6 +5382,506 @@ public class VpxFFI extends VpxFFI$shared {
     public static int VP8_DECODER_CTRL_ID_MAX() {
         return VP8_DECODER_CTRL_ID_MAX;
     }
+
+    private static class vpx_codec_dec_init_ver {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            VpxFFI.C_INT,
+            VpxFFI.C_POINTER,
+            VpxFFI.C_POINTER,
+            VpxFFI.C_POINTER,
+            VpxFFI.C_LONG,
+            VpxFFI.C_INT
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("vpx_codec_dec_init_ver");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * vpx_codec_err_t vpx_codec_dec_init_ver(vpx_codec_ctx_t *ctx, vpx_codec_iface_t *iface, const vpx_codec_dec_cfg_t *cfg, vpx_codec_flags_t flags, int ver)
+     * }
+     */
+    public static FunctionDescriptor vpx_codec_dec_init_ver$descriptor() {
+        return vpx_codec_dec_init_ver.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * vpx_codec_err_t vpx_codec_dec_init_ver(vpx_codec_ctx_t *ctx, vpx_codec_iface_t *iface, const vpx_codec_dec_cfg_t *cfg, vpx_codec_flags_t flags, int ver)
+     * }
+     */
+    public static MethodHandle vpx_codec_dec_init_ver$handle() {
+        return vpx_codec_dec_init_ver.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * vpx_codec_err_t vpx_codec_dec_init_ver(vpx_codec_ctx_t *ctx, vpx_codec_iface_t *iface, const vpx_codec_dec_cfg_t *cfg, vpx_codec_flags_t flags, int ver)
+     * }
+     */
+    public static MemorySegment vpx_codec_dec_init_ver$address() {
+        return vpx_codec_dec_init_ver.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * vpx_codec_err_t vpx_codec_dec_init_ver(vpx_codec_ctx_t *ctx, vpx_codec_iface_t *iface, const vpx_codec_dec_cfg_t *cfg, vpx_codec_flags_t flags, int ver)
+     * }
+     */
+    public static int vpx_codec_dec_init_ver(MemorySegment ctx, MemorySegment iface, MemorySegment cfg, long flags, int ver) {
+        var mh$ = vpx_codec_dec_init_ver.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("vpx_codec_dec_init_ver", ctx, iface, cfg, flags, ver);
+            }
+            return (int)mh$.invokeExact(ctx, iface, cfg, flags, ver);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class vpx_codec_peek_stream_info {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            VpxFFI.C_INT,
+            VpxFFI.C_POINTER,
+            VpxFFI.C_POINTER,
+            VpxFFI.C_INT,
+            VpxFFI.C_POINTER
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("vpx_codec_peek_stream_info");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * vpx_codec_err_t vpx_codec_peek_stream_info(vpx_codec_iface_t *iface, const uint8_t *data, unsigned int data_sz, vpx_codec_stream_info_t *si)
+     * }
+     */
+    public static FunctionDescriptor vpx_codec_peek_stream_info$descriptor() {
+        return vpx_codec_peek_stream_info.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * vpx_codec_err_t vpx_codec_peek_stream_info(vpx_codec_iface_t *iface, const uint8_t *data, unsigned int data_sz, vpx_codec_stream_info_t *si)
+     * }
+     */
+    public static MethodHandle vpx_codec_peek_stream_info$handle() {
+        return vpx_codec_peek_stream_info.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * vpx_codec_err_t vpx_codec_peek_stream_info(vpx_codec_iface_t *iface, const uint8_t *data, unsigned int data_sz, vpx_codec_stream_info_t *si)
+     * }
+     */
+    public static MemorySegment vpx_codec_peek_stream_info$address() {
+        return vpx_codec_peek_stream_info.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * vpx_codec_err_t vpx_codec_peek_stream_info(vpx_codec_iface_t *iface, const uint8_t *data, unsigned int data_sz, vpx_codec_stream_info_t *si)
+     * }
+     */
+    public static int vpx_codec_peek_stream_info(MemorySegment iface, MemorySegment data, int data_sz, MemorySegment si) {
+        var mh$ = vpx_codec_peek_stream_info.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("vpx_codec_peek_stream_info", iface, data, data_sz, si);
+            }
+            return (int)mh$.invokeExact(iface, data, data_sz, si);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class vpx_codec_get_stream_info {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            VpxFFI.C_INT,
+            VpxFFI.C_POINTER,
+            VpxFFI.C_POINTER
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("vpx_codec_get_stream_info");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * vpx_codec_err_t vpx_codec_get_stream_info(vpx_codec_ctx_t *ctx, vpx_codec_stream_info_t *si)
+     * }
+     */
+    public static FunctionDescriptor vpx_codec_get_stream_info$descriptor() {
+        return vpx_codec_get_stream_info.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * vpx_codec_err_t vpx_codec_get_stream_info(vpx_codec_ctx_t *ctx, vpx_codec_stream_info_t *si)
+     * }
+     */
+    public static MethodHandle vpx_codec_get_stream_info$handle() {
+        return vpx_codec_get_stream_info.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * vpx_codec_err_t vpx_codec_get_stream_info(vpx_codec_ctx_t *ctx, vpx_codec_stream_info_t *si)
+     * }
+     */
+    public static MemorySegment vpx_codec_get_stream_info$address() {
+        return vpx_codec_get_stream_info.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * vpx_codec_err_t vpx_codec_get_stream_info(vpx_codec_ctx_t *ctx, vpx_codec_stream_info_t *si)
+     * }
+     */
+    public static int vpx_codec_get_stream_info(MemorySegment ctx, MemorySegment si) {
+        var mh$ = vpx_codec_get_stream_info.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("vpx_codec_get_stream_info", ctx, si);
+            }
+            return (int)mh$.invokeExact(ctx, si);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class vpx_codec_decode {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            VpxFFI.C_INT,
+            VpxFFI.C_POINTER,
+            VpxFFI.C_POINTER,
+            VpxFFI.C_INT,
+            VpxFFI.C_POINTER,
+            VpxFFI.C_LONG
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("vpx_codec_decode");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * vpx_codec_err_t vpx_codec_decode(vpx_codec_ctx_t *ctx, const uint8_t *data, unsigned int data_sz, void *user_priv, long deadline)
+     * }
+     */
+    public static FunctionDescriptor vpx_codec_decode$descriptor() {
+        return vpx_codec_decode.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * vpx_codec_err_t vpx_codec_decode(vpx_codec_ctx_t *ctx, const uint8_t *data, unsigned int data_sz, void *user_priv, long deadline)
+     * }
+     */
+    public static MethodHandle vpx_codec_decode$handle() {
+        return vpx_codec_decode.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * vpx_codec_err_t vpx_codec_decode(vpx_codec_ctx_t *ctx, const uint8_t *data, unsigned int data_sz, void *user_priv, long deadline)
+     * }
+     */
+    public static MemorySegment vpx_codec_decode$address() {
+        return vpx_codec_decode.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * vpx_codec_err_t vpx_codec_decode(vpx_codec_ctx_t *ctx, const uint8_t *data, unsigned int data_sz, void *user_priv, long deadline)
+     * }
+     */
+    public static int vpx_codec_decode(MemorySegment ctx, MemorySegment data, int data_sz, MemorySegment user_priv, long deadline) {
+        var mh$ = vpx_codec_decode.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("vpx_codec_decode", ctx, data, data_sz, user_priv, deadline);
+            }
+            return (int)mh$.invokeExact(ctx, data, data_sz, user_priv, deadline);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class vpx_codec_get_frame {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            VpxFFI.C_POINTER,
+            VpxFFI.C_POINTER,
+            VpxFFI.C_POINTER
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("vpx_codec_get_frame");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * vpx_image_t *vpx_codec_get_frame(vpx_codec_ctx_t *ctx, vpx_codec_iter_t *iter)
+     * }
+     */
+    public static FunctionDescriptor vpx_codec_get_frame$descriptor() {
+        return vpx_codec_get_frame.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * vpx_image_t *vpx_codec_get_frame(vpx_codec_ctx_t *ctx, vpx_codec_iter_t *iter)
+     * }
+     */
+    public static MethodHandle vpx_codec_get_frame$handle() {
+        return vpx_codec_get_frame.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * vpx_image_t *vpx_codec_get_frame(vpx_codec_ctx_t *ctx, vpx_codec_iter_t *iter)
+     * }
+     */
+    public static MemorySegment vpx_codec_get_frame$address() {
+        return vpx_codec_get_frame.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * vpx_image_t *vpx_codec_get_frame(vpx_codec_ctx_t *ctx, vpx_codec_iter_t *iter)
+     * }
+     */
+    public static MemorySegment vpx_codec_get_frame(MemorySegment ctx, MemorySegment iter) {
+        var mh$ = vpx_codec_get_frame.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("vpx_codec_get_frame", ctx, iter);
+            }
+            return (MemorySegment)mh$.invokeExact(ctx, iter);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class vpx_codec_register_put_frame_cb {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            VpxFFI.C_INT,
+            VpxFFI.C_POINTER,
+            VpxFFI.C_POINTER,
+            VpxFFI.C_POINTER
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("vpx_codec_register_put_frame_cb");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * vpx_codec_err_t vpx_codec_register_put_frame_cb(vpx_codec_ctx_t *ctx, vpx_codec_put_frame_cb_fn_t cb, void *user_priv)
+     * }
+     */
+    public static FunctionDescriptor vpx_codec_register_put_frame_cb$descriptor() {
+        return vpx_codec_register_put_frame_cb.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * vpx_codec_err_t vpx_codec_register_put_frame_cb(vpx_codec_ctx_t *ctx, vpx_codec_put_frame_cb_fn_t cb, void *user_priv)
+     * }
+     */
+    public static MethodHandle vpx_codec_register_put_frame_cb$handle() {
+        return vpx_codec_register_put_frame_cb.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * vpx_codec_err_t vpx_codec_register_put_frame_cb(vpx_codec_ctx_t *ctx, vpx_codec_put_frame_cb_fn_t cb, void *user_priv)
+     * }
+     */
+    public static MemorySegment vpx_codec_register_put_frame_cb$address() {
+        return vpx_codec_register_put_frame_cb.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * vpx_codec_err_t vpx_codec_register_put_frame_cb(vpx_codec_ctx_t *ctx, vpx_codec_put_frame_cb_fn_t cb, void *user_priv)
+     * }
+     */
+    public static int vpx_codec_register_put_frame_cb(MemorySegment ctx, MemorySegment cb, MemorySegment user_priv) {
+        var mh$ = vpx_codec_register_put_frame_cb.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("vpx_codec_register_put_frame_cb", ctx, cb, user_priv);
+            }
+            return (int)mh$.invokeExact(ctx, cb, user_priv);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class vpx_codec_register_put_slice_cb {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            VpxFFI.C_INT,
+            VpxFFI.C_POINTER,
+            VpxFFI.C_POINTER,
+            VpxFFI.C_POINTER
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("vpx_codec_register_put_slice_cb");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * vpx_codec_err_t vpx_codec_register_put_slice_cb(vpx_codec_ctx_t *ctx, vpx_codec_put_slice_cb_fn_t cb, void *user_priv)
+     * }
+     */
+    public static FunctionDescriptor vpx_codec_register_put_slice_cb$descriptor() {
+        return vpx_codec_register_put_slice_cb.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * vpx_codec_err_t vpx_codec_register_put_slice_cb(vpx_codec_ctx_t *ctx, vpx_codec_put_slice_cb_fn_t cb, void *user_priv)
+     * }
+     */
+    public static MethodHandle vpx_codec_register_put_slice_cb$handle() {
+        return vpx_codec_register_put_slice_cb.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * vpx_codec_err_t vpx_codec_register_put_slice_cb(vpx_codec_ctx_t *ctx, vpx_codec_put_slice_cb_fn_t cb, void *user_priv)
+     * }
+     */
+    public static MemorySegment vpx_codec_register_put_slice_cb$address() {
+        return vpx_codec_register_put_slice_cb.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * vpx_codec_err_t vpx_codec_register_put_slice_cb(vpx_codec_ctx_t *ctx, vpx_codec_put_slice_cb_fn_t cb, void *user_priv)
+     * }
+     */
+    public static int vpx_codec_register_put_slice_cb(MemorySegment ctx, MemorySegment cb, MemorySegment user_priv) {
+        var mh$ = vpx_codec_register_put_slice_cb.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("vpx_codec_register_put_slice_cb", ctx, cb, user_priv);
+            }
+            return (int)mh$.invokeExact(ctx, cb, user_priv);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class vpx_codec_set_frame_buffer_functions {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            VpxFFI.C_INT,
+            VpxFFI.C_POINTER,
+            VpxFFI.C_POINTER,
+            VpxFFI.C_POINTER,
+            VpxFFI.C_POINTER
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("vpx_codec_set_frame_buffer_functions");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * vpx_codec_err_t vpx_codec_set_frame_buffer_functions(vpx_codec_ctx_t *ctx, vpx_get_frame_buffer_cb_fn_t cb_get, vpx_release_frame_buffer_cb_fn_t cb_release, void *cb_priv)
+     * }
+     */
+    public static FunctionDescriptor vpx_codec_set_frame_buffer_functions$descriptor() {
+        return vpx_codec_set_frame_buffer_functions.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * vpx_codec_err_t vpx_codec_set_frame_buffer_functions(vpx_codec_ctx_t *ctx, vpx_get_frame_buffer_cb_fn_t cb_get, vpx_release_frame_buffer_cb_fn_t cb_release, void *cb_priv)
+     * }
+     */
+    public static MethodHandle vpx_codec_set_frame_buffer_functions$handle() {
+        return vpx_codec_set_frame_buffer_functions.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * vpx_codec_err_t vpx_codec_set_frame_buffer_functions(vpx_codec_ctx_t *ctx, vpx_get_frame_buffer_cb_fn_t cb_get, vpx_release_frame_buffer_cb_fn_t cb_release, void *cb_priv)
+     * }
+     */
+    public static MemorySegment vpx_codec_set_frame_buffer_functions$address() {
+        return vpx_codec_set_frame_buffer_functions.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * vpx_codec_err_t vpx_codec_set_frame_buffer_functions(vpx_codec_ctx_t *ctx, vpx_get_frame_buffer_cb_fn_t cb_get, vpx_release_frame_buffer_cb_fn_t cb_release, void *cb_priv)
+     * }
+     */
+    public static int vpx_codec_set_frame_buffer_functions(MemorySegment ctx, MemorySegment cb_get, MemorySegment cb_release, MemorySegment cb_priv) {
+        var mh$ = vpx_codec_set_frame_buffer_functions.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("vpx_codec_set_frame_buffer_functions", ctx, cb_get, cb_release, cb_priv);
+            }
+            return (int)mh$.invokeExact(ctx, cb_get, cb_release, cb_priv);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
     private static final int VPX_IMAGE_ABI_VERSION = (int)5L;
     /**
      * {@snippet lang=c :
@@ -7901,6 +8518,15 @@ public class VpxFFI extends VpxFFI$shared {
      */
     public static int VP8_EFLAG_NO_UPD_ENTROPY() {
         return VP8_EFLAG_NO_UPD_ENTROPY;
+    }
+    private static final int VPX_DECODER_ABI_VERSION = (int)12L;
+    /**
+     * {@snippet lang=c :
+     * #define VPX_DECODER_ABI_VERSION 12
+     * }
+     */
+    public static int VPX_DECODER_ABI_VERSION() {
+        return VPX_DECODER_ABI_VERSION;
     }
 }
 

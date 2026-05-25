@@ -8,7 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- VP8 decoder implementation (`Vp8Decoder`).
+- VP8 decoder implementation (`Vp8Decoder`) using Project Panama FFM API.
+- `VpxDecoderConfig` record for basic decoder configuration.
+- `VpxImage.toByteArray()` to efficiently copy the native I420 planes (respecting strides) into a contiguous Java `byte[]`.
+- `VpxImage.getPlane()` and `VpxImage.getStride()` for zero-copy access to the strided Y, U, and V memory planes.
+- Codec-owned native frame support via `VpxImage.createCodecOwned()` to safely wrap libvpx decoder buffers without freeing them prematurely on close.
 - `VpxPacket` now exposes all four libvpx frame-flag constants (`VPX_FRAME_IS_KEY`,
   `VPX_FRAME_IS_DROPPABLE`, `VPX_FRAME_IS_INVISIBLE`, `VPX_FRAME_IS_FRAGMENT`) with
   corresponding helper methods (`isKeyFrame()`, `isDroppable()`, `isInvisible()`, `isFragment()`).
