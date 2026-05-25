@@ -28,8 +28,6 @@ Developed by [Oliver Seuffert](https://gitlab.com/org.seuffert).
 
 ## Installation
 
-> panvpx has not yet been published to Maven Central. The coordinates below will be valid once the first release is tagged.
-
 ### Maven
 
 ```xml
