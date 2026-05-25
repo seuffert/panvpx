@@ -80,7 +80,9 @@ After **every** git commit, **immediately check** whether any documentation file
 before proceeding. Do not wait to be asked. Specifically, review:
 
 - `CHANGELOG.md` — does the `[Unreleased]` section reflect the committed changes (new features,
-  bug fixes, test additions)?
+  bug fixes, test additions)? **After completing and committing any new feature, always add an
+  entry to `[Unreleased]` before moving on. Never leave a feature undocumented in the
+  changelog.**
 - `docs/ROADMAP.md` — has a phase been completed or started? Update its status marker.
 - `README.md` — do the status blurb, feature list, or code snippets need updating?
 - `AGENTS.md` — were any new conventions, build commands, or architectural decisions introduced?
