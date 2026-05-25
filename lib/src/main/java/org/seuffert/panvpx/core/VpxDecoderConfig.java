@@ -1,7 +1,7 @@
-package org.seuffert.panvpx.vp8;
+package org.seuffert.panvpx.core;
 
 /**
- * Configuration options for the VP8 Decoder.
+ * Configuration options for a VPX Decoder (VP8 or VP9).
  *
  * @param threads The maximum number of threads to use for decoding. Default is 1.
  * @param width The intended width of the video frame, if known in advance. Can be 0.

@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `AbstractVpxEncoder` and `AbstractVpxDecoder` abstract base classes in `org.seuffert.panvpx.core`,
+  containing all shared VP8/VP9 encoder and decoder logic.
+- `VpxEncoderConfig` and `VpxDecoderConfig` moved from `org.seuffert.panvpx.vp8` to
+  `org.seuffert.panvpx.core` for reuse across codecs.
+- `Vp9Encoder` in `org.seuffert.panvpx.vp9` — VP9 video encoder backed by `libvpx`
+  `vpx_codec_vp9_cx` interface.
+- `Vp9Decoder` in `org.seuffert.panvpx.vp9` — VP9 video decoder backed by `libvpx`
+  `vpx_codec_vp9_dx` interface.
+- `AbstractVpxEncoder.VPX_EFLAG_FORCE_KF` replaces the former `Vp8Encoder.VPX_EFLAG_FORCE_KF`
+  so the constant is accessible for both VP8 and VP9 encoders.
+- `Vp9EncoderTest` and `Vp9DecoderTest` with full coverage mirroring the VP8 test suites.
+- JPMS module now exports `org.seuffert.panvpx.vp9`.
+
+### Changed
+- `Vp8Encoder` and `Vp8Decoder` refactored as thin `final` subclasses of the new abstract bases;
+  public API is unchanged.
+- `VpxEncoderConfig` and `VpxDecoderConfig` are now in `org.seuffert.panvpx.core` (package change).
+
 ## [0.1.0] — 2026-05-25
 
 ### Added

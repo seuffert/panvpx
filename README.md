@@ -10,14 +10,14 @@ Developed by [Oliver Seuffert](https://gitlab.com/org.seuffert).
 
 - **JNI-free**: Native calls via Project Panama FFM — no JNI glue code, no native compilation step.
 - **Simple and advanced paths**: Pass standard `byte[]` arrays for ease of use; pass `MemorySegment` or direct `ByteBuffer` for zero-copy performance.
-- **VP8 and VP9**: Single library for encoding and decoding (VP8 encoding and decoding are stable; VP9 support is in progress).
+- **VP8 and VP9**: Full encoding and decoding support for both VP8 and VP9 via a shared `AbstractVpxEncoder` / `AbstractVpxDecoder` design.
 - **Java 25+**: Uses `record` types, `try-with-resources`, and `Arena`-scoped memory for safe native memory management.
 - **JPMS Ready**: Fully modularized as `org.seuffert.panvpx`; internal FFM bindings are never exported.
 - **Strict Quality**: Every build verified by Spotless, ErrorProne, NullAway, Checkstyle, SpotBugs, and PMD — all warnings treated as errors.
 
 ## Status
 
-> **Work in Progress** — VP8 encoding and decoding are complete and stable. VP9 support is upcoming (see [docs/ROADMAP.md](docs/ROADMAP.md)).
+> VP8 and VP9 encoding and decoding are implemented and stable. See [docs/ROADMAP.md](docs/ROADMAP.md) for future plans.
 
 ## Requirements
 
@@ -79,7 +79,7 @@ System.out.println("libvpx version: " + PanVpx.getVersionString());
 import org.seuffert.panvpx.core.VpxImage;
 import org.seuffert.panvpx.core.VpxPacket;
 import org.seuffert.panvpx.vp8.Vp8Encoder;
-import org.seuffert.panvpx.vp8.VpxEncoderConfig;
+import org.seuffert.panvpx.core.VpxEncoderConfig;
 
 int width = 640, height = 480;
 VpxEncoderConfig config = new VpxEncoderConfig(width, height, /* bitrateKbps */ 512, /* threads */ 2);

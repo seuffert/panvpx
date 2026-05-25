@@ -11,6 +11,7 @@ import java.lang.foreign.ValueLayout;
 import java.nio.ByteBuffer;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.seuffert.panvpx.core.VpxEncoderConfig;
 import org.seuffert.panvpx.core.VpxImage;
 import org.seuffert.panvpx.core.VpxPacket;
 

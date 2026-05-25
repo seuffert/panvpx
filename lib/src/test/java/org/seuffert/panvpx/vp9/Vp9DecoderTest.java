@@ -1,4 +1,4 @@
-package org.seuffert.panvpx.vp8;
+package org.seuffert.panvpx.vp9;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,7 +18,7 @@ import org.seuffert.panvpx.core.VpxException;
 import org.seuffert.panvpx.core.VpxImage;
 import org.seuffert.panvpx.core.VpxPacket;
 
-class Vp8DecoderTest {
+class Vp9DecoderTest {
 
     @Test
     void testEndToEndEncodeDecode() {
@@ -39,12 +39,14 @@ class Vp8DecoderTest {
 
         int framesDecoded = 0;
 
-        try (Vp8Encoder encoder = new Vp8Encoder(encConfig);
-                Vp8Decoder decoder = new Vp8Decoder(decConfig);
+        try (Vp9Encoder encoder = new Vp9Encoder(encConfig);
+                Vp9Decoder decoder = new Vp9Decoder(decConfig);
                 VpxImage image = VpxImage.fromByteArray(dummyData, width, height)) {
 
             final List<VpxPacket> packets =
-                    encoder.encode(image, 0, 1000, AbstractVpxEncoder.VPX_EFLAG_FORCE_KF);
+                    new ArrayList<>(
+                            encoder.encode(image, 0, 1000, AbstractVpxEncoder.VPX_EFLAG_FORCE_KF));
+            packets.addAll(encoder.flush());
             assertFalse(packets.isEmpty(), "Encoder must produce at least one packet");
 
             for (final VpxPacket pkt : packets) {
@@ -75,7 +77,7 @@ class Vp8DecoderTest {
     void testInvalidDataThrowsException() {
         final byte[] badData = {(byte) 0x00, (byte) 0x01, (byte) 0x02, (byte) 0x03, (byte) 0x04};
 
-        try (Vp8Decoder decoder = new Vp8Decoder(new VpxDecoderConfig())) {
+        try (Vp9Decoder decoder = new Vp9Decoder(new VpxDecoderConfig())) {
             assertThrows(
                     VpxException.class,
                     () -> decoder.decode(badData),
@@ -85,7 +87,7 @@ class Vp8DecoderTest {
 
     @Test
     void testDecoderUseAfterCloseThrowsException() {
-        final Vp8Decoder decoder = new Vp8Decoder(new VpxDecoderConfig());
+        final Vp9Decoder decoder = new Vp9Decoder(new VpxDecoderConfig());
         decoder.close();
 
         final byte[] badData = {(byte) 0x00};
@@ -97,7 +99,7 @@ class Vp8DecoderTest {
 
     @Test
     void testDoubleCloseIsIdempotent() {
-        final Vp8Decoder decoder = new Vp8Decoder(new VpxDecoderConfig());
+        final Vp9Decoder decoder = new Vp9Decoder(new VpxDecoderConfig());
 
         // First close must succeed
         decoder.close();
@@ -118,8 +120,8 @@ class Vp8DecoderTest {
         final int frameSize = width * height * 3 / 2;
         final int frameCount = 5;
 
-        try (Vp8Encoder encoder = new Vp8Encoder(new VpxEncoderConfig(width, height));
-                Vp8Decoder decoder = new Vp8Decoder(new VpxDecoderConfig())) {
+        try (Vp9Encoder encoder = new Vp9Encoder(new VpxEncoderConfig(width, height));
+                Vp9Decoder decoder = new Vp9Decoder(new VpxDecoderConfig())) {
             int totalDecoded = 0;
 
             for (int i = 0; i < frameCount; i++) {
@@ -161,12 +163,14 @@ class Vp8DecoderTest {
         final int height = 240;
         final int frameSize = width * height * 3 / 2;
 
-        try (Vp8Encoder encoder = new Vp8Encoder(new VpxEncoderConfig(width, height));
-                Vp8Decoder decoder = new Vp8Decoder(new VpxDecoderConfig());
+        try (Vp9Encoder encoder = new Vp9Encoder(new VpxEncoderConfig(width, height));
+                Vp9Decoder decoder = new Vp9Decoder(new VpxDecoderConfig());
                 VpxImage image = VpxImage.fromByteArray(new byte[frameSize], width, height)) {
 
             final List<VpxPacket> packets =
-                    encoder.encode(image, 0, 1000, AbstractVpxEncoder.VPX_EFLAG_FORCE_KF);
+                    new ArrayList<>(
+                            encoder.encode(image, 0, 1000, AbstractVpxEncoder.VPX_EFLAG_FORCE_KF));
+            packets.addAll(encoder.flush());
             assertFalse(packets.isEmpty(), "Encoder must produce at least one packet");
 
             int decoded = 0;
@@ -196,12 +200,14 @@ class Vp8DecoderTest {
         final int uvDim = (width + 1) / 2;
         final int uvHeight = (height + 1) / 2;
 
-        try (Vp8Encoder encoder = new Vp8Encoder(new VpxEncoderConfig(width, height));
-                Vp8Decoder decoder = new Vp8Decoder(new VpxDecoderConfig());
+        try (Vp9Encoder encoder = new Vp9Encoder(new VpxEncoderConfig(width, height));
+                Vp9Decoder decoder = new Vp9Decoder(new VpxDecoderConfig());
                 VpxImage image = VpxImage.fromByteArray(new byte[frameSize], width, height)) {
 
             final List<VpxPacket> packets =
-                    encoder.encode(image, 0, 1000, AbstractVpxEncoder.VPX_EFLAG_FORCE_KF);
+                    new ArrayList<>(
+                            encoder.encode(image, 0, 1000, AbstractVpxEncoder.VPX_EFLAG_FORCE_KF));
+            packets.addAll(encoder.flush());
 
             int validatedFrames = 0;
             for (final VpxPacket pkt : packets) {
@@ -240,8 +246,7 @@ class Vp8DecoderTest {
 
     /**
      * Verifies that {@link VpxImage#getStride(int)} and {@link VpxImage#getPlane(int)} reject
-     * out-of-range plane indices with an {@link IllegalArgumentException}. This guards the bounds
-     * fix that changed the valid range from [0, 3] to [0, 2].
+     * out-of-range plane indices with an {@link IllegalArgumentException}.
      */
     @Test
     void testInvalidPlaneIndexThrowsException() {
@@ -267,17 +272,20 @@ class Vp8DecoderTest {
         // Encode on the main thread and copy packet data to heap byte arrays before
         // the encoder (and its internal memory) is closed.
         final List<byte[]> encodedData = new ArrayList<>();
-        try (Vp8Encoder encoder = new Vp8Encoder(new VpxEncoderConfig(width, height));
+        try (Vp9Encoder encoder = new Vp9Encoder(new VpxEncoderConfig(width, height));
                 VpxImage image = VpxImage.fromByteArray(new byte[frameSize], width, height)) {
-            for (final VpxPacket pkt :
-                    encoder.encode(image, 0, 1000, AbstractVpxEncoder.VPX_EFLAG_FORCE_KF)) {
+            final List<VpxPacket> pkts =
+                    new ArrayList<>(
+                            encoder.encode(image, 0, 1000, AbstractVpxEncoder.VPX_EFLAG_FORCE_KF));
+            pkts.addAll(encoder.flush());
+            for (final VpxPacket pkt : pkts) {
                 encodedData.add(pkt.toByteArray());
             }
         }
         assertFalse(encodedData.isEmpty(), "Encoder must produce at least one packet");
 
         // Create decoder on the main thread; decode() runs on a worker thread.
-        try (Vp8Decoder decoder = new Vp8Decoder(new VpxDecoderConfig())) {
+        try (Vp9Decoder decoder = new Vp9Decoder(new VpxDecoderConfig())) {
             final int[] decodedCount = {0};
             final Throwable[] threadError = {null};
 

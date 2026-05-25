@@ -1,7 +1,7 @@
-package org.seuffert.panvpx.vp8;
+package org.seuffert.panvpx.core;
 
 /**
- * Configuration options for the VP8 Encoder.
+ * Configuration options for a VPX Encoder (VP8 or VP9).
  *
  * @param width The width of the video frame.
  * @param height The height of the video frame.

@@ -21,9 +21,12 @@ Iterative implementation of a Java/JDK25 wrapper for libvpx using Project Panama
    - Updated `VpxImage` with codec-owned frame wrapper, `toByteArray()`, and zero-copy accessors
    - Implemented `VpxDecoderConfig` and `Vp8Decoder`
    - End-to-end encode/decode test suite in `Vp8DecoderTest`
-5. **Phase 5: VP9 & Abstraction** (*depends on 4*)
-   - Extract shared logic into `AbstractVpxEncoder` / `AbstractVpxDecoder`
-   - Add `Vp9Encoder` and `Vp9Decoder` implementations
+5. **Phase 5: VP9 & Abstraction** (*depends on 4*) ✅ Completed
+   - Extracted shared logic into `AbstractVpxEncoder` / `AbstractVpxDecoder` in `org.seuffert.panvpx.core`
+   - Moved `VpxEncoderConfig` and `VpxDecoderConfig` to `org.seuffert.panvpx.core`
+   - `Vp8Encoder` and `Vp8Decoder` refactored as thin final subclasses
+   - Added `Vp9Encoder` and `Vp9Decoder` in `org.seuffert.panvpx.vp9`
+   - Full test suites: `Vp9EncoderTest` and `Vp9DecoderTest`
 
 **Relevant files**
 - `lib/build.gradle.kts` — Project config, JDK 25 setup, static analysis configuration
