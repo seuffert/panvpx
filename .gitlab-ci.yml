@@ -1,0 +1,74 @@
+# TODO: Replace this base image with a custom image that has libvpx-dev pre-installed
+# to eliminate the apt-get install step on every run and save ~1-2 min per pipeline.
+# Example Dockerfile:
+#   FROM eclipse-temurin:25-jdk-jammy
+#   RUN apt-get update && apt-get install -y libvpx-dev && rm -rf /var/lib/apt/lists/*
+# Push it to the GitLab Container Registry and reference it here.
+image: eclipse-temurin:25-jdk-jammy
+
+variables:
+  # Move the Gradle User Home into the project directory so it falls under GitLab's
+  # cache paths and is persisted across runs.
+  GRADLE_USER_HOME: ".gradle"
+  # Disable the Gradle daemon — ephemeral containers are thrown away after each job
+  # so a persistent daemon process is pure overhead.
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+
+# Avoid duplicate pipelines — only run for MRs, pushes to main, and tags.
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$CI_COMMIT_TAG'
+
+cache:
+  # Cache 1: Gradle wrapper binary.
+  # Keyed by the checksum of gradle-wrapper.properties so it is automatically
+  # refreshed when the Gradle version is bumped and shared across all branches
+  # (the same wrapper version is used everywhere).
+  - key:
+      files:
+        - gradle/wrapper/gradle-wrapper.properties
+    paths:
+      - .gradle/wrapper
+    policy: pull-push
+
+  # Cache 2: Resolved dependency jars + Gradle task-output build cache.
+  # The build cache (.gradle/build-cache) is the most critical path here:
+  # it stores compiled class files, static-analysis results, test outputs, etc.
+  # Without it, org.gradle.caching=true in gradle.properties has no effect in CI
+  # because the directory is discarded after every job.
+  #
+  # Key strategy: branch slug so each branch gets its own warm cache, with a
+  # fallback to the main branch cache so new MR branches start warm, not cold.
+  - key: "$CI_COMMIT_REF_SLUG-gradle"
+    fallback_keys:
+      - "$CI_DEFAULT_BRANCH-gradle"
+    paths:
+      - .gradle/caches
+      - .gradle/build-cache
+    policy: pull-push
+
+before_script:
+  # Install the native libvpx library required by the Project Panama FFI bindings.
+  # Once the custom Docker image above is in use, remove these two lines.
+  - apt-get update -q -y && apt-get install -q -y libvpx-dev
+
+stages:
+  - build-and-test
+
+# Build and test are intentionally combined into one job.
+# Splitting them would spin up a second container, re-extract the cache, and
+# pass artifacts between stages — easily doubling consumed CI minutes.
+build_and_test:
+  stage: build-and-test
+  interruptible: true  # Cancel stale pipelines automatically when a new push arrives
+  script:
+    - ./gradlew build --continue
+  artifacts:
+    when: always
+    reports:
+      junit: "**/build/test-results/test/**/TEST-*.xml"
+    paths:
+      - "**/build/reports/"
+      - "**/build/libs/"
