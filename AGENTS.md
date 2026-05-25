@@ -76,7 +76,17 @@ PMD enforces this via `LocalVariableCouldBeFinal` and `MethodArgumentCouldBeFina
 - Always check `docs/ROADMAP.md` before starting a new phase and update it when a phase is completed.
 
 ### 7. Documentation Update Workflow
-After each committed code change, **offer to update and commit** any affected documentation files (`AGENTS.md`, `docs/ROADMAP.md`, `README.md`, `CHANGELOG.md`, etc.) in a separate follow-up commit. Use a short, compact one-liner commit message — e.g., `docs: update ROADMAP to reflect Phase 3 completion`.
+After **every** git commit, **immediately check** whether any documentation file needs updating
+before proceeding. Do not wait to be asked. Specifically, review:
+
+- `CHANGELOG.md` — does the `[Unreleased]` section reflect the committed changes (new features,
+  bug fixes, test additions)?
+- `docs/ROADMAP.md` — has a phase been completed or started? Update its status marker.
+- `README.md` — do the status blurb, feature list, or code snippets need updating?
+- `AGENTS.md` — were any new conventions, build commands, or architectural decisions introduced?
+
+If any of these need updating, apply all changes and commit them in a single follow-up commit
+with a short, compact one-liner message — e.g., `docs: update ROADMAP to reflect Phase 3 completion`.
 
 ## Versioning / Release process
 
