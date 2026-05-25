@@ -3,10 +3,12 @@ package org.seuffert.panvpx.core;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 
 class VpxImageTest {
@@ -54,5 +56,42 @@ class VpxImageTest {
                 IllegalStateException.class,
                 () -> image.nativeImage().get(ValueLayout.JAVA_BYTE, 0),
                 "Accessing memory after close should throw IllegalStateException");
+    }
+
+    /**
+     * Verifies that a VpxImage created by fromMemorySegment can be closed from a thread different
+     * from the one that created it. This requires Arena.ofShared() (not Arena.ofConfined()).
+     */
+    @Test
+    void testFromMemorySegmentCanBeClosedFromDifferentThread() throws InterruptedException {
+        final int width = 320;
+        final int height = 240;
+        final int frameSize = width * height * 3 / 2;
+
+        try (Arena dataArena = Arena.ofShared()) {
+            final MemorySegment segment = dataArena.allocate(frameSize);
+
+            // Create image on the current thread
+            final VpxImage image = VpxImage.fromMemorySegment(segment, width, height);
+
+            final AtomicReference<Throwable> errorOnOtherThread = new AtomicReference<>();
+            final Thread closer =
+                    new Thread(
+                            () -> {
+                                try {
+                                    // Close on a different thread — must not throw
+                                    // WrongThreadException
+                                    image.close();
+                                } catch (final Throwable t) {
+                                    errorOnOtherThread.set(t);
+                                }
+                            });
+            closer.start();
+            closer.join();
+
+            if (errorOnOtherThread.get() != null) {
+                fail("close() threw on different thread: " + errorOnOtherThread.get().getMessage());
+            }
+        }
     }
 }

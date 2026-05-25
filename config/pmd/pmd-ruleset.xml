@@ -87,6 +87,8 @@
     <rule ref="category/java/multithreading.xml">
         <!-- We use double-checked locking idiom with synchronized blocks -->
         <exclude name="AvoidSynchronizedStatement"/>
+        <!-- DoNotUseThreads is a J2EE/servlet rule; it has no applicability to a Java library -->
+        <exclude name="DoNotUseThreads"/>
     </rule>
 
     <!-- Security -->

@@ -13,8 +13,7 @@ import org.seuffert.panvpx.ffi.vpx_image;
 public final class VpxImage implements AutoCloseable {
 
     /** Standard VPX Image Format for I420 planar data. */
-    public static final int VPX_IMG_FMT_I420 =
-            0x102; // VPX_IMG_FMT_PLANAR | VPX_IMG_FMT_UV_FLIP | 2
+    public static final int VPX_IMG_FMT_I420 = 0x102; // VPX_IMG_FMT_PLANAR | 2
 
     private final MemorySegment nativeImage;
     private final Arena dataArena;
@@ -99,16 +98,20 @@ public final class VpxImage implements AutoCloseable {
 
     /**
      * "Easy direct memory" path: Creates a VpxImage from an existing MemorySegment. The memory is
-     * aliased without copying.
+     * aliased without copying. This {@code VpxImage} does NOT own or close the passed segment — the
+     * caller retains ownership and must keep the segment alive for the lifetime of this image.
+     *
+     * <p>The returned image may be created on one thread and closed on a different thread, because
+     * it uses a shared arena internally.
      *
      * @param segment The memory segment containing the I420 image data.
      * @param width The width of the image
      * @param height The height of the image
-     * @return A VpxImage that does NOT manage the lifecycle of the passed segment.
+     * @return A VpxImage that MUST be closed when no longer needed.
      */
     public static VpxImage fromMemorySegment(
             final MemorySegment segment, final int width, final int height) {
-        final Arena structArena = Arena.ofConfined();
+        final Arena structArena = Arena.ofShared();
         boolean success = false;
         try {
             final MemorySegment imageStruct = vpx_image.allocate(structArena);
