@@ -103,4 +103,35 @@ class Vp8EncoderTest {
         // Second close must be a silent no-op — no exception, no native crash
         assertDoesNotThrow(encoder::close, "Second close() call must be a no-op");
     }
+
+    /**
+     * Verifies that flush() drains any delayed packets without throwing. A VP8 encoder configured
+     * with a multi-frame lag may hold back frames; flush() with VPX_DL_BEST_QUALITY must release
+     * them all.
+     */
+    @Test
+    void testFlushDrainsEncoder() {
+        final int width = 320;
+        final int height = 240;
+        final int frameSize = width * height * 3 / 2;
+
+        try (Vp8Encoder encoder = new Vp8Encoder(new VpxEncoderConfig(width, height))) {
+            // Encode several frames so the encoder has something to flush
+            int totalPackets = 0;
+            for (int i = 0; i < 5; i++) {
+                final byte[] data = new byte[frameSize];
+                try (VpxImage image = VpxImage.fromByteArray(data, width, height)) {
+                    final List<VpxPacket> packets = encoder.encode(image, i * 1000L, 1000, 0);
+                    totalPackets += packets.size();
+                }
+            }
+
+            // Flush must complete without exception and may return additional packets
+            final List<VpxPacket> flushed = encoder.flush();
+            totalPackets += flushed.size();
+
+            assertTrue(
+                    totalPackets > 0, "At least one encoded packet expected across encode+flush");
+        }
+    }
 }

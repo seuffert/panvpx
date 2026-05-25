@@ -102,14 +102,18 @@ public class Vp8Encoder implements AutoCloseable {
     }
 
     /**
-     * Flushes the encoder, returning any delayed packets.
+     * Flushes the encoder, returning any delayed packets. Uses {@code VPX_DL_BEST_QUALITY}
+     * (deadline = 0) so libvpx is allowed to spend as much time as needed to drain the lookahead
+     * buffer completely. Callers must consume the returned packets before the next {@link #encode}
+     * or {@link #flush} call — see {@link org.seuffert.panvpx.core.VpxPacket} for the
+     * memory-lifetime contract.
      *
      * @return A list of delayed encoded packets.
      */
     public List<VpxPacket> flush() {
         final int res =
                 VpxFFI.vpx_codec_encode(
-                        codecCtx, MemorySegment.NULL, 0, 0, 0, VpxFFI.VPX_DL_REALTIME());
+                        codecCtx, MemorySegment.NULL, 0, 0, 0, VpxFFI.VPX_DL_BEST_QUALITY());
         checkError(codecCtx, res, "Failed to flush encoder");
         return extractPackets();
     }
