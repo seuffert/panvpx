@@ -1,6 +1,7 @@
 # AI Agent Instructions for panvpx
 
 ## Project Context
+- **Shell**: The terminal environment uses **Fish shell** (not Bash). Write all shell commands and scripts using Fish syntax (e.g., `and` instead of `&&` for command chaining, `set` instead of `export`, `fish` code blocks in documentation).
 - **Language**: Java
 - **JDK Version**: JDK 25+
 - **Native Interop**: Project Panama (Foreign Function & Memory API - FFM)
