@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.3] — 2026-05-26
+
+### Fixed
+- Added missing `import org.seuffert.panvpx.core.VpxException` to `Vp8Encoder`, `Vp8Decoder`,
+  `Vp9Encoder`, and `Vp9Decoder` so that the `@throws VpxException` Javadoc tags can be
+  resolved across package boundaries and the `:lib:javadoc` task succeeds.
+
 ## [0.3.2] — 2026-05-26
 
 ### Changed
@@ -137,7 +144,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   caused libvpx to skip frames still held in its lookahead buffer. Changed to `VPX_DL_BEST_QUALITY`
   (deadline = 0) so all delayed frames are drained completely on flush.
 
-[Unreleased]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.3.2...HEAD
+[Unreleased]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.3.3...HEAD
+[0.3.3]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.3.2...v0.3.3
 [0.3.2]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.3.1...v0.3.2
 [0.3.1]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.3.0...v0.3.1
 [0.3.0]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.2.0...v0.3.0

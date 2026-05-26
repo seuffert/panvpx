@@ -2,6 +2,7 @@ package org.seuffert.panvpx.vp9;
 
 import org.seuffert.panvpx.core.AbstractVpxEncoder;
 import org.seuffert.panvpx.core.VpxEncoderConfig;
+import org.seuffert.panvpx.core.VpxException;
 import org.seuffert.panvpx.ffi.VpxFFI;
 
 /**
