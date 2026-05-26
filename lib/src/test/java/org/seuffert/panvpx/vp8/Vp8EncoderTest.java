@@ -57,13 +57,15 @@ class Vp8EncoderTest {
                 assertTrue(bytes.length > 0, "Packet byte array should not be empty");
             }
 
-            // Flush the encoder
-            final List<VpxPacket> flushPackets = encoder.flush();
-            packetsReceived += flushPackets.size();
+            // Flush the encoder in a loop until empty to drain all buffered frames
+            List<VpxPacket> flushPackets;
+            do {
+                flushPackets = encoder.flush();
+                packetsReceived += flushPackets.size();
+            } while (!flushPackets.isEmpty());
         }
 
-        assertTrue(
-                packetsReceived > 0, "Should have received at least one packet from the encoder");
+        assertEquals(1, packetsReceived, "Expected exactly 1 encoded packet for one input frame");
     }
 
     @Test
@@ -140,12 +142,15 @@ class Vp8EncoderTest {
                 }
             }
 
-            // Flush must complete without exception and may return additional packets
-            final List<VpxPacket> flushed = encoder.flush();
-            totalPackets += flushed.size();
+            // Flush in a loop until empty to drain all buffered frames
+            List<VpxPacket> flushed;
+            do {
+                flushed = encoder.flush();
+                totalPackets += flushed.size();
+            } while (!flushed.isEmpty());
 
-            assertTrue(
-                    totalPackets > 0, "At least one encoded packet expected across encode+flush");
+            assertEquals(
+                    5, totalPackets, "Expected exactly 5 encoded packets (one per input frame)");
         }
     }
 

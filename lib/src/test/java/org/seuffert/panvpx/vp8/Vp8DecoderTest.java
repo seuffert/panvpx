@@ -73,9 +73,31 @@ class Vp8DecoderTest {
                             "Decoded byte array size must match I420 size");
                 }
             }
+
+            // Flush encoder in a loop until empty and decode any remaining buffered frames
+            List<VpxPacket> flushed;
+            do {
+                flushed = encoder.flush();
+                for (final VpxPacket pkt : flushed) {
+                    final List<VpxImage> decodedImages = decoder.decode(pkt);
+                    framesDecoded += decodedImages.size();
+                    for (final VpxImage decodedImg : decodedImages) {
+                        assertEquals(width, decodedImg.width(), "Decoded width must match");
+                        assertEquals(height, decodedImg.height(), "Decoded height must match");
+                        assertEquals(
+                                VpxImage.VPX_IMG_FMT_I420,
+                                decodedImg.format(),
+                                "Decoded format must match");
+                        assertEquals(
+                                frameSize,
+                                decodedImg.toByteArray().length,
+                                "Decoded byte array size must match I420 size");
+                    }
+                }
+            } while (!flushed.isEmpty());
         }
 
-        assertTrue(framesDecoded > 0, "Decoder must have produced at least one frame");
+        assertEquals(1, framesDecoded, "Decoder must produce exactly 1 decoded frame");
     }
 
     @Test
@@ -147,16 +169,20 @@ class Vp8DecoderTest {
                 }
             }
 
-            // Flush the encoder and decode any remaining buffered packets
-            for (final VpxPacket pkt : encoder.flush()) {
-                for (final VpxImage decoded : decoder.decode(pkt)) {
-                    assertEquals(width, decoded.width());
-                    assertEquals(height, decoded.height());
-                    totalDecoded++;
+            // Flush the encoder in a loop until empty and decode any remaining buffered packets
+            List<VpxPacket> flushed;
+            do {
+                flushed = encoder.flush();
+                for (final VpxPacket pkt : flushed) {
+                    for (final VpxImage decoded : decoder.decode(pkt)) {
+                        assertEquals(width, decoded.width());
+                        assertEquals(height, decoded.height());
+                        totalDecoded++;
+                    }
                 }
-            }
+            } while (!flushed.isEmpty());
 
-            assertTrue(totalDecoded > 0, "At least one frame must be decoded from the stream");
+            assertEquals(frameCount, totalDecoded, "Expected exactly frameCount decoded frames");
         }
     }
 
@@ -174,12 +200,10 @@ class Vp8DecoderTest {
                 Vp8Decoder decoder = new Vp8Decoder(new VpxDecoderConfig());
                 VpxImage image = VpxImage.fromByteArray(new byte[frameSize], width, height)) {
 
-            final List<VpxPacket> packets =
-                    encoder.encode(image, 0, 1000, AbstractVpxEncoder.VPX_EFLAG_FORCE_KF);
-            assertFalse(packets.isEmpty(), "Encoder must produce at least one packet");
-
             int decoded = 0;
-            for (final VpxPacket pkt : packets) {
+            // Encode with FORCE_KF and immediately decode via byte[] overload
+            for (final VpxPacket pkt :
+                    encoder.encode(image, 0, 1000, AbstractVpxEncoder.VPX_EFLAG_FORCE_KF)) {
                 // Use pkt.toByteArray() to explicitly invoke the byte[] decode path
                 for (final VpxImage img : decoder.decode(pkt.toByteArray())) {
                     assertEquals(width, img.width());
@@ -188,7 +212,20 @@ class Vp8DecoderTest {
                 }
             }
 
-            assertTrue(decoded > 0, "byte[] decode path must produce at least one frame");
+            // Flush encoder in a loop until empty and decode any remaining packets via byte[] path
+            List<VpxPacket> flushed;
+            do {
+                flushed = encoder.flush();
+                for (final VpxPacket pkt : flushed) {
+                    for (final VpxImage img : decoder.decode(pkt.toByteArray())) {
+                        assertEquals(width, img.width());
+                        assertEquals(height, img.height());
+                        decoded++;
+                    }
+                }
+            } while (!flushed.isEmpty());
+
+            assertEquals(1, decoded, "byte[] decode path must produce exactly 1 decoded frame");
         }
     }
 
@@ -209,11 +246,9 @@ class Vp8DecoderTest {
                 Vp8Decoder decoder = new Vp8Decoder(new VpxDecoderConfig());
                 VpxImage image = VpxImage.fromByteArray(new byte[frameSize], width, height)) {
 
-            final List<VpxPacket> packets =
-                    encoder.encode(image, 0, 1000, AbstractVpxEncoder.VPX_EFLAG_FORCE_KF);
-
             int validatedFrames = 0;
-            for (final VpxPacket pkt : packets) {
+            for (final VpxPacket pkt :
+                    encoder.encode(image, 0, 1000, AbstractVpxEncoder.VPX_EFLAG_FORCE_KF)) {
                 for (final VpxImage decoded : decoder.decode(pkt)) {
                     // Strides must cover at least the plane width
                     assertTrue(decoded.getStride(0) >= width, "Y stride >= width");
@@ -243,7 +278,40 @@ class Vp8DecoderTest {
                 }
             }
 
-            assertTrue(validatedFrames > 0, "At least one frame must be validated");
+            // Flush encoder in a loop until empty and validate any remaining decoded frames
+            List<VpxPacket> flushed;
+            do {
+                flushed = encoder.flush();
+                for (final VpxPacket pkt : flushed) {
+                    for (final VpxImage decoded : decoder.decode(pkt)) {
+                        assertTrue(decoded.getStride(0) >= width, "Y stride >= width");
+                        assertTrue(decoded.getStride(1) >= uvDim, "U stride >= (width+1)/2");
+                        assertTrue(decoded.getStride(2) >= uvDim, "V stride >= (width+1)/2");
+
+                        final ByteBuffer yBuf = decoded.getPlane(0);
+                        assertEquals(
+                                decoded.getStride(0) * height,
+                                yBuf.capacity(),
+                                "Y plane capacity == stride * height");
+
+                        final ByteBuffer uBuf = decoded.getPlane(1);
+                        assertEquals(
+                                decoded.getStride(1) * uvHeight,
+                                uBuf.capacity(),
+                                "U plane capacity == stride * uv-height");
+
+                        final ByteBuffer vBuf = decoded.getPlane(2);
+                        assertEquals(
+                                decoded.getStride(2) * uvHeight,
+                                vBuf.capacity(),
+                                "V plane capacity == stride * uv-height");
+
+                        validatedFrames++;
+                    }
+                }
+            } while (!flushed.isEmpty());
+
+            assertEquals(1, validatedFrames, "Expected exactly 1 decoded frame to be validated");
         }
     }
 
@@ -282,6 +350,14 @@ class Vp8DecoderTest {
                     encoder.encode(image, 0, 1000, AbstractVpxEncoder.VPX_EFLAG_FORCE_KF)) {
                 encodedData.add(pkt.toByteArray());
             }
+            // Flush encoder in a loop until empty, copying data immediately
+            List<VpxPacket> flushed;
+            do {
+                flushed = encoder.flush();
+                for (final VpxPacket pkt : flushed) {
+                    encodedData.add(pkt.toByteArray());
+                }
+            } while (!flushed.isEmpty());
         }
         assertFalse(encodedData.isEmpty(), "Encoder must produce at least one packet");
 
@@ -309,7 +385,7 @@ class Vp8DecoderTest {
             if (error != null) {
                 throw new AssertionError("Decoder threw on worker thread", error);
             }
-            assertTrue(decodedCount[0] > 0, "Worker thread must decode at least one frame");
+            assertEquals(1, decodedCount[0], "Worker thread must decode exactly 1 frame");
         }
     }
 }

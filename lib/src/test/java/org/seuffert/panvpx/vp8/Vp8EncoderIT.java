@@ -1,6 +1,7 @@
 package org.seuffert.panvpx.vp8;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -59,14 +60,17 @@ class Vp8EncoderIT {
                 }
             }
 
-            final List<VpxPacket> flushPackets = encoder.flush();
-            for (final VpxPacket pkt : flushPackets) {
-                totalEncodedBytes += pkt.size();
-            }
+            List<VpxPacket> flushPackets;
+            do {
+                flushPackets = encoder.flush();
+                for (final VpxPacket pkt : flushPackets) {
+                    totalEncodedBytes += pkt.size();
+                }
+            } while (!flushPackets.isEmpty());
         }
 
         // We know the source video is 3 seconds at 30fps = 90 frames
-        assertTrue(frameCount > 80, "Should have read and encoded ~90 frames");
+        assertEquals(90, frameCount, "Should have read and encoded exactly 90 frames");
         assertTrue(totalEncodedBytes > 10_000, "Should have encoded a substantial amount of data");
     }
 
