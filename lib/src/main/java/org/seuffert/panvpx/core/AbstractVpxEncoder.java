@@ -15,9 +15,40 @@ import org.seuffert.panvpx.ffi.vpx_rational;
 /**
  * Abstract base class for VP8 and VP9 encoders using libvpx via Project Panama FFM API.
  *
- * <p>Subclasses supply the codec-specific interface pointer via the constructor; all lifecycle
- * management, configuration application, packet extraction, and error handling logic is provided
- * here.
+ * <p>Concrete subclasses ({@link org.seuffert.panvpx.vp8.Vp8Encoder}, {@link
+ * org.seuffert.panvpx.vp9.Vp9Encoder}) supply the codec-specific interface pointer via their
+ * constructor. All lifecycle management, configuration application, packet extraction, and error
+ * handling logic is centralized here.
+ *
+ * <h2>Encoding lifecycle</h2>
+ *
+ * <ol>
+ *   <li>Create a concrete encoder subclass with a {@link VpxEncoderConfig}.
+ *   <li>For each raw frame, wrap the I420 pixel data in a {@link VpxImage} and call {@link
+ *       #encode}. Process the returned {@link VpxPacket} instances <em>before</em> the next {@code
+ *       encode} call — they point into codec-internal memory that is invalidated on the next call.
+ *   <li>At end-of-stream, call {@link #flush} in a loop until the list is empty to drain any frames
+ *       held in the encoder's lookahead buffer.
+ *   <li>Call {@link #close} (or use try-with-resources) to release all native memory.
+ * </ol>
+ *
+ * <pre>{@code
+ * try (Vp8Encoder encoder = new Vp8Encoder(new VpxEncoderConfig(640, 480, 512, 2))) {
+ *     long pts = 0;
+ *     for (byte[] rawFrame : frameSource) {
+ *         try (VpxImage image = VpxImage.fromByteArray(rawFrame, 640, 480)) {
+ *             encoder.encode(image, pts++, 1L, 0L)
+ *                    .forEach(p -> send(p.toByteArray()));
+ *         }
+ *     }
+ *     // Drain the lookahead buffer
+ *     List<VpxPacket> batch;
+ *     do {
+ *         batch = encoder.flush();
+ *         batch.forEach(p -> send(p.toByteArray()));
+ *     } while (!batch.isEmpty());
+ * }
+ * }</pre>
  *
  * <p><strong>Thread-safety:</strong> The underlying libvpx codec state is not concurrently
  * thread-safe. External serialization is required if the same instance is shared across threads.
@@ -106,13 +137,30 @@ public abstract class AbstractVpxEncoder implements AutoCloseable {
     public abstract String getCodecName();
 
     /**
-     * Encodes a single frame.
+     * Encodes a single raw video frame and returns any compressed packets produced.
      *
-     * @param image The VpxImage containing the uncompressed frame data.
-     * @param pts The presentation timestamp of the frame.
-     * @param duration The duration to show the frame.
-     * @param flags Encoding flags (e.g., {@link #VPX_EFLAG_FORCE_KF} to force a key frame).
-     * @return A list of encoded packets.
+     * <p>Timestamps and durations are expressed in timebase units as configured in {@link
+     * VpxEncoderConfig}: with the default 1/1000 timebase, one unit equals one millisecond.
+     * Timestamps must be monotonically increasing and non-overlapping across successive calls.
+     *
+     * <p>The returned list may be <em>empty</em> for a given input frame. VP9 in particular buffers
+     * frames in a lookahead window before emitting packets. Call {@link #flush} at end-of-stream to
+     * drain those delayed packets.
+     *
+     * <p><strong>Memory contract:</strong> The returned {@link VpxPacket} instances point into
+     * libvpx-internal memory that is invalidated by the next call to {@code encode()} or {@link
+     * #flush()}, or when the encoder is closed. Call {@link VpxPacket#toByteArray() toByteArray()}
+     * immediately if the data must survive beyond the current call site.
+     *
+     * @param image The {@link VpxImage} containing the uncompressed I420 frame to encode.
+     * @param pts The presentation timestamp of the frame, in timebase units.
+     * @param duration The display duration of the frame, in timebase units. Typically {@code 1L}
+     *     when the timebase denominator equals the target frame rate.
+     * @param flags Encoding flags. Pass {@code 0L} for normal encoding, or {@link
+     *     #VPX_EFLAG_FORCE_KF} to force a key frame at this position.
+     * @return A (possibly empty) list of encoded packets, valid until the next {@code encode()} or
+     *     {@link #flush()} call.
+     * @throws VpxException if the underlying {@code vpx_codec_encode} call fails.
      */
     public List<VpxPacket> encode(
             final VpxImage image, final long pts, final long duration, final long flags) {

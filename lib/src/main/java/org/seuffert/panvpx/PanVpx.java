@@ -3,7 +3,29 @@ package org.seuffert.panvpx;
 import java.lang.foreign.MemorySegment;
 import org.seuffert.panvpx.ffi.VpxFFI;
 
-/** Global utility entry point for the panvpx library. */
+/**
+ * Global utility entry point for the panvpx library.
+ *
+ * <p>This class provides static methods to check the availability and version of the underlying
+ * libvpx native library on the current system. Call {@link #isLibVpxAvailable()} before creating
+ * any encoder or decoder to produce a clear error message if the native library is missing, rather
+ * than an opaque {@link UnsatisfiedLinkError}.
+ *
+ * <p><strong>Thread-safety:</strong> All methods in this class are thread-safe. The result of
+ * {@link #isLibVpxAvailable()} is cached after the first call.
+ *
+ * <p><strong>Example:</strong>
+ *
+ * <pre>{@code
+ * if (!PanVpx.isLibVpxAvailable()) {
+ *     throw new IllegalStateException(
+ *         "libvpx is not installed. Install it with:\n"
+ *         + "  Debian/Ubuntu: sudo apt install libvpx-dev\n"
+ *         + "  macOS:         brew install libvpx");
+ * }
+ * System.out.println("Using: " + PanVpx.getVersionString());
+ * }</pre>
+ */
 public final class PanVpx {
 
     private static boolean checked;

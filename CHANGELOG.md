@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2] — 2026-05-26
+
+### Changed
+- Comprehensive Javadoc improvements across all public types: package descriptions with
+  quick-start examples, lifecycle guides, per-method parameter and return documentation,
+  memory-contract explanations, and cross-references between related classes.
+
 ## [0.3.1] — 2026-05-26
 
 ### Added
@@ -130,7 +137,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   caused libvpx to skip frames still held in its lookahead buffer. Changed to `VPX_DL_BEST_QUALITY`
   (deadline = 0) so all delayed frames are drained completely on flush.
 
-[Unreleased]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.3.1...HEAD
+[Unreleased]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.3.2...HEAD
+[0.3.2]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.3.1...v0.3.2
 [0.3.1]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.3.0...v0.3.1
 [0.3.0]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.2.0...v0.3.0
 [0.2.0]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.1.0...v0.2.0

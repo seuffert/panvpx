@@ -14,8 +14,40 @@ import org.seuffert.panvpx.ffi.vpx_image;
 /**
  * Abstract base class for VP8 and VP9 decoders using libvpx via Project Panama FFM API.
  *
- * <p>Subclasses supply the codec-specific interface pointer via the constructor; all lifecycle
- * management, frame extraction, and error handling logic is provided here.
+ * <p>Concrete subclasses ({@link org.seuffert.panvpx.vp8.Vp8Decoder}, {@link
+ * org.seuffert.panvpx.vp9.Vp9Decoder}) supply the codec-specific interface pointer via their
+ * constructor. All lifecycle management, frame extraction, and error handling logic is centralized
+ * here.
+ *
+ * <h2>Decoding lifecycle</h2>
+ *
+ * <ol>
+ *   <li>Create a concrete decoder subclass with a {@link VpxDecoderConfig}.
+ *   <li>For each compressed packet, call one of the {@code decode} overloads. Process the returned
+ *       {@link VpxImage} instances <em>before</em> the next decode call &mdash; they wrap
+ *       codec-internal buffers that are invalidated on the next call. Use {@link
+ *       VpxImage#toByteArray()} for a safe copy.
+ *   <li>At end-of-stream, call {@link #flush} in a loop until the list is empty to drain any frames
+ *       that the codec held in its internal pipeline.
+ *   <li>Call {@link #close} (or use try-with-resources) to release all native memory.
+ * </ol>
+ *
+ * <pre>{@code
+ * try (Vp8Decoder decoder = new Vp8Decoder(new VpxDecoderConfig())) {
+ *     for (byte[] packet : packetSource) {
+ *         for (VpxImage frame : decoder.decode(packet)) {
+ *             byte[] i420 = frame.toByteArray(); // safe copy
+ *             display(i420, frame.width(), frame.height());
+ *         }
+ *     }
+ *     // Drain remaining buffered frames
+ *     List<VpxImage> batch;
+ *     do {
+ *         batch = decoder.flush();
+ *         batch.forEach(f -> display(f.toByteArray(), f.width(), f.height()));
+ *     } while (!batch.isEmpty());
+ * }
+ * }</pre>
  *
  * <p><strong>Thread-safety:</strong> The underlying libvpx codec state is not concurrently
  * thread-safe. External serialization is required if the same instance is shared across threads.

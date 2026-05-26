@@ -3,13 +3,34 @@ package org.seuffert.panvpx.core;
 /**
  * Configuration options for a VPX Encoder (VP8 or VP9).
  *
+ * <p>This immutable record contains all necessary parameters to initialize a video encoder,
+ * balancing quality, speed, and target bitrate.
+ *
+ * <p><strong>Example usage:</strong>
+ *
+ * <pre>{@code
+ * // 720p video at 1.5 Mbps, using 4 threads for encoding
+ * VpxEncoderConfig config = new VpxEncoderConfig(1280, 720, 1500, 4);
+ * try (Vp8Encoder encoder = new Vp8Encoder(config)) {
+ *     // Encode frames...
+ * }
+ * }</pre>
+ *
  * @param width The width of the video frame.
  * @param height The height of the video frame.
  * @param targetBitrateKbps The target bitrate in kilobits per second.
- * @param frameDropThreshold The threshold for dropping frames to hit the target bitrate.
+ * @param frameDropThreshold Controls frame dropping to hit the target bitrate. {@code 0} disables
+ *     frame dropping entirely. Values {@code 1}&ndash;{@code 100} represent the percentage of the
+ *     data-rate undershoot below which a frame may be dropped; e.g. {@code 30} allows the encoder
+ *     to drop frames when it is more than 30&nbsp;% below the target rate.
  * @param threads The number of threads to use for encoding.
- * @param timebaseNumerator The numerator of the timebase fraction.
- * @param timebaseDenominator The denominator of the timebase fraction.
+ * @param timebaseNumerator The numerator of the timebase fraction. Together with {@link
+ *     #timebaseDenominator} this defines the unit for the {@code pts} and {@code duration}
+ *     arguments passed to {@link org.seuffert.panvpx.core.AbstractVpxEncoder#encode encode()}. For
+ *     example, {@code 1/1000} means timestamps are in milliseconds; {@code 1/90000} matches the
+ *     standard MPEG 90&nbsp;kHz clock.
+ * @param timebaseDenominator The denominator of the timebase fraction. The default value of {@code
+ *     1000} gives millisecond-resolution timestamps.
  * @param deadline The per-frame encoding deadline in microseconds. Use one of the {@code
  *     DEADLINE_*} constants: {@link #DEADLINE_REALTIME} for low-latency streaming or {@link
  *     #DEADLINE_GOOD_QUALITY} for throughput benchmarks and general use.

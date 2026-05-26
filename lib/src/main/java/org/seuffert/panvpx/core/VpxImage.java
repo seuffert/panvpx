@@ -9,12 +9,42 @@ import org.seuffert.panvpx.ffi.VpxFFI;
 import org.seuffert.panvpx.ffi.vpx_image;
 
 /**
- * A wrapper for the native `vpx_image_t` structure. Manages the memory for raw uncompressed image
- * frames.
+ * A wrapper for the native {@code vpx_image_t} structure. Manages the memory for raw uncompressed
+ * image frames.
+ *
+ * <p>This class abstracts the complex native memory layout of video frames into a manageable Java
+ * object. It primarily supports the I420 planar pixel format commonly used with VP8 and VP9 codecs.
+ *
+ * <p><strong>Resource management:</strong> Because instances of this class wrap native memory, they
+ * MUST be closed when no longer needed using {@link #close()} or a try-with-resources block.
+ *
+ * <p><strong>Example usage:</strong>
+ *
+ * <pre>{@code
+ * // Creating an image from a byte array for encoding
+ * byte[] i420Data = new byte[width * height * 3 / 2]; // Y + U + V planes
+ * try (VpxImage image = VpxImage.fromByteArray(i420Data, width, height)) {
+ *     encoder.encode(image, pts, duration, flags);
+ * }
+ * }</pre>
  */
 public final class VpxImage implements AutoCloseable {
 
-    /** Standard VPX Image Format for I420 planar data. */
+    /**
+     * Standard VPX image format identifier for I420 (YUV 4:2:0 planar) pixel data.
+     *
+     * <p>I420 is a planar format with three separate, non-interleaved planes:
+     *
+     * <ul>
+     *   <li><strong>Plane 0 &mdash; Y (luma):</strong> full resolution, {@code width × height}
+     *       bytes.
+     *   <li><strong>Plane 1 &mdash; U / Cb (chroma blue):</strong> half resolution in both
+     *       dimensions, {@code ⌈width/2⌉ × ⌈height/2⌉} bytes.
+     *   <li><strong>Plane 2 &mdash; V / Cr (chroma red):</strong> same size as the U plane.
+     * </ul>
+     *
+     * <p>Total tightly-packed frame size: {@code width × height × 3 / 2} bytes.
+     */
     public static final int VPX_IMG_FMT_I420 = 0x102; // VPX_IMG_FMT_PLANAR | 2
 
     private final MemorySegment nativeImage;
@@ -69,22 +99,44 @@ public final class VpxImage implements AutoCloseable {
     }
 
     /**
-     * Gets the raw pixel format of the image.
+     * Returns the raw pixel format of this image.
      *
-     * @return The format integer flag.
+     * <p>The only format currently produced and consumed by this library is {@link
+     * #VPX_IMG_FMT_I420}. Decoder-produced images may theoretically carry a different format code
+     * if the bitstream was encoded with a different pixel format, in which case {@link
+     * #toByteArray()} will throw a {@link VpxException}.
+     *
+     * @return The VPX format constant (e.g. {@link #VPX_IMG_FMT_I420}).
      */
     public int format() {
         return format;
     }
 
     /**
-     * Simple path: Creates a VpxImage from a Java heap byte array. The data is copied to off-heap
-     * native memory.
+     * Simple path: creates a {@link VpxImage} from a Java heap {@code byte[]} containing
+     * tightly-packed I420 pixel data. The array is copied to off-heap native memory owned by the
+     * returned image.
      *
-     * @param data The raw image data in I420 format (Y, U, V planes)
-     * @param width The width of the image
-     * @param height The height of the image
-     * @return A VpxImage that MUST be closed when no longer needed.
+     * <p>The expected byte layout for a {@code width × height} I420 frame is:
+     *
+     * <ul>
+     *   <li>Bytes {@code 0} &hellip; {@code width*height - 1}: Y (luma) plane, row by row.
+     *   <li>Bytes {@code width*height} &hellip; {@code width*height*5/4 - 1}: U (Cb) plane, at half
+     *       resolution in both dimensions, row by row.
+     *   <li>Bytes {@code width*height*5/4} &hellip; {@code width*height*3/2 - 1}: V (Cr) plane,
+     *       same size as U, row by row.
+     * </ul>
+     *
+     * <p>The minimum required array length is therefore {@code width * height * 3 / 2} bytes.
+     *
+     * <p>Use {@link #fromMemorySegment(MemorySegment, int, int)} instead when the data already
+     * lives in off-heap native memory to avoid an unnecessary copy.
+     *
+     * @param data The raw, tightly-packed I420 image data.
+     * @param width The frame width in pixels.
+     * @param height The frame height in pixels.
+     * @return A new {@link VpxImage} that MUST be closed when no longer needed.
+     * @throws VpxException if the underlying {@code vpx_img_wrap} call fails.
      */
     public static VpxImage fromByteArray(final byte[] data, final int width, final int height) {
         final Arena arena = Arena.ofShared();
@@ -119,17 +171,25 @@ public final class VpxImage implements AutoCloseable {
     }
 
     /**
-     * "Easy direct memory" path: Creates a VpxImage from an existing MemorySegment. The memory is
-     * aliased without copying. This {@code VpxImage} does NOT own or close the passed segment — the
-     * caller retains ownership and must keep the segment alive for the lifetime of this image.
+     * Advanced path: creates a {@link VpxImage} from an existing off-heap {@link MemorySegment}
+     * <em>without</em> copying the pixel data. Use this path when the frame data already resides in
+     * native memory (e.g. from a camera driver or an upstream pipeline stage) to eliminate an
+     * unnecessary copy.
      *
-     * <p>The returned image may be created on one thread and closed on a different thread, because
+     * <p>The segment must contain a tightly-packed I420 frame in the layout described by {@link
+     * #VPX_IMG_FMT_I420}: {@code width × height × 3 / 2} bytes in Y-U-V order.
+     *
+     * <p>This {@link VpxImage} does <em>not</em> own or close the passed segment &mdash; the caller
+     * retains ownership and must keep the segment alive for the full lifetime of this image.
+     *
+     * <p>The returned image may be created on one thread and closed on a different thread because
      * it uses a shared arena internally.
      *
-     * @param segment The memory segment containing the I420 image data.
-     * @param width The width of the image
-     * @param height The height of the image
-     * @return A VpxImage that MUST be closed when no longer needed.
+     * @param segment The off-heap memory segment containing the I420 image data.
+     * @param width The frame width in pixels.
+     * @param height The frame height in pixels.
+     * @return A new {@link VpxImage} that MUST be closed when no longer needed.
+     * @throws VpxException if the underlying {@code vpx_img_wrap} call fails.
      */
     public static VpxImage fromMemorySegment(
             final MemorySegment segment, final int width, final int height) {
@@ -197,10 +257,25 @@ public final class VpxImage implements AutoCloseable {
     }
 
     /**
-     * Gets the stride (in bytes) of the specified plane.
+     * Returns the stride (row pitch, in bytes) of the specified plane.
      *
-     * @param planeIndex The index of the plane (0 for Y, 1 for U, 2 for V).
-     * @return The stride.
+     * <p>The stride is the number of bytes between the start of one row and the start of the next.
+     * It may be <em>larger</em> than the plane's pixel width when the codec or the platform adds
+     * alignment padding at the end of each row. Always use the stride, not the image width, when
+     * iterating over rows manually:
+     *
+     * <pre>{@code
+     * int stride = image.getStride(0); // Y-plane stride
+     * ByteBuffer yPlane = image.getPlane(0);
+     * for (int row = 0; row < image.height(); row++) {
+     *     yPlane.position(row * stride);
+     *     // read image.width() bytes of valid Y data for this row
+     * }
+     * }</pre>
+     *
+     * @param planeIndex The plane index: {@code 0} = Y, {@code 1} = U (Cb), {@code 2} = V (Cr).
+     * @return The stride of the plane in bytes.
+     * @throws IllegalArgumentException if {@code planeIndex} is not in the range [0,&nbsp;2].
      */
     public int getStride(final int planeIndex) {
         if (planeIndex < 0 || planeIndex > 2) {
@@ -243,11 +318,20 @@ public final class VpxImage implements AutoCloseable {
     }
 
     /**
-     * Simple path: Copies the native image planes into a new contiguous Java byte array in I420
-     * format. This safely extracts the valid pixels even if the native image uses strided memory
-     * (where row length exceeds image width).
+     * Simple path: copies the native image planes into a new tightly-packed Java {@code byte[]} in
+     * I420 format (Y plane, then U plane, then V plane), stripping any alignment padding bytes that
+     * may be present in the native strided representation.
      *
-     * @return A new byte array containing the tightly packed I420 image data.
+     * <p>The returned array has exactly {@code width * height * 3 / 2} bytes and is completely
+     * independent of the native buffers, making it safe to use after the next {@code decode()}
+     * call.
+     *
+     * <p>For performance-sensitive paths, consider {@link #getPlane(int)} to access individual
+     * planes directly without the copy overhead.
+     *
+     * @return A new {@code byte[]} of size {@code width * height * 3 / 2} containing tightly-packed
+     *     I420 pixel data.
+     * @throws VpxException if the image format is not {@link #VPX_IMG_FMT_I420}.
      */
     public byte[] toByteArray() {
         if (format != VPX_IMG_FMT_I420) {
