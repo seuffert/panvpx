@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Removed the three short convenience constructors from `VpxEncoderConfig`
+  (`(width, height)`, `(width, height, bitrateKbps, threads)`, and
+  `(width, height, bitrateKbps, threads, deadline)`). Use
+  `VpxEncoderConfig.builder(width, height)` instead. The canonical all-args record
+  constructor is retained for completeness but the builder is the intended public API.
+
 ### Added
 - `VpxEncoderConfig.Builder`: fluent builder for encoder configuration, accessible via
   `VpxEncoderConfig.builder(width, height)`.
