@@ -180,19 +180,15 @@ public final class BenchmarkRunner {
 
     private static AutoCloseable createEncoder(final String codec, final BenchmarkConfig config) {
         final VpxEncoderConfig encCfg =
-                new VpxEncoderConfig(
-                        config.width(),
-                        config.height(),
-                        config.bitrateKbps(),
-                        0,
-                        config.threads(),
-                        1,
-                        1000,
-                        config.preset().deadline(),
-                        config.cpuUsed(),
-                        config.isRowMt(),
-                        config.tileColumns(),
-                        config.tokenPartitions());
+                VpxEncoderConfig.builder(config.width(), config.height())
+                        .targetBitrateKbps(config.bitrateKbps())
+                        .threads(config.threads())
+                        .deadline(config.preset().deadline())
+                        .cpuUsed(config.cpuUsed())
+                        .rowMt(config.isRowMt())
+                        .tileColumns(config.tileColumns())
+                        .tokenPartitions(config.tokenPartitions())
+                        .build();
         return "VP8".equals(codec) ? new Vp8Encoder(encCfg) : new Vp9Encoder(encCfg);
     }
 

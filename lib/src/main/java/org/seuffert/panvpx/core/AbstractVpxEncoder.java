@@ -95,9 +95,20 @@ public abstract class AbstractVpxEncoder implements AutoCloseable {
             // 2. Apply custom configuration
             vpx_codec_enc_cfg.g_w(encCfg, config.width());
             vpx_codec_enc_cfg.g_h(encCfg, config.height());
+            vpx_codec_enc_cfg.g_usage(encCfg, config.usage());
+            vpx_codec_enc_cfg.g_profile(encCfg, config.profile());
+            vpx_codec_enc_cfg.g_error_resilient(encCfg, config.errorResilient() ? 1 : 0);
+            vpx_codec_enc_cfg.g_lag_in_frames(encCfg, config.lagInFrames());
+            vpx_codec_enc_cfg.g_threads(encCfg, config.threads());
             vpx_codec_enc_cfg.rc_target_bitrate(encCfg, config.targetBitrateKbps());
             vpx_codec_enc_cfg.rc_dropframe_thresh(encCfg, config.frameDropThreshold());
-            vpx_codec_enc_cfg.g_threads(encCfg, config.threads());
+            vpx_codec_enc_cfg.rc_end_usage(encCfg, toNativeRcMode(config.rateControlMode()));
+            vpx_codec_enc_cfg.rc_min_quantizer(encCfg, config.minQuantizer());
+            vpx_codec_enc_cfg.rc_max_quantizer(encCfg, config.maxQuantizer());
+            vpx_codec_enc_cfg.kf_mode(encCfg, toNativeKfMode(config.keyframeMode()));
+            if (config.maxKeyframeDistance() > 0) {
+                vpx_codec_enc_cfg.kf_max_dist(encCfg, config.maxKeyframeDistance());
+            }
 
             final MemorySegment timebase = vpx_codec_enc_cfg.g_timebase(encCfg);
             vpx_rational.num(timebase, config.timebaseNumerator());
@@ -259,6 +270,22 @@ public abstract class AbstractVpxEncoder implements AutoCloseable {
         }
 
         return packets;
+    }
+
+    private static int toNativeRcMode(final VpxEncoderConfig.RateControlMode mode) {
+        return switch (mode) {
+            case VBR -> VpxFFI.VPX_VBR();
+            case CBR -> VpxFFI.VPX_CBR();
+            case CQ -> VpxFFI.VPX_CQ();
+            case Q -> VpxFFI.VPX_Q();
+        };
+    }
+
+    private static int toNativeKfMode(final VpxEncoderConfig.KeyframeMode mode) {
+        return switch (mode) {
+            case AUTO -> VpxFFI.VPX_KF_AUTO();
+            case DISABLED -> VpxFFI.VPX_KF_DISABLED();
+        };
     }
 
     private static void checkError(final MemorySegment ctx, final int res, final String message) {
