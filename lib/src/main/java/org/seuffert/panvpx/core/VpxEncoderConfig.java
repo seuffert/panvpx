@@ -22,6 +22,28 @@ package org.seuffert.panvpx.core;
  * }
  * }</pre>
  *
+ * <p><strong>Relationship to libvpx native defaults</strong> — The {@link Builder} defaults are
+ * designed to work reasonably for both VP8 ({@code vp8_cx_iface.c}) and VP9 ({@code
+ * vp9_cx_iface.c}), both at {@code VPX_ENCODER_ABI_VERSION = 39}. Intentional divergences from the
+ * raw libvpx defaults:
+ *
+ * <ul>
+ *   <li>{@link #minQuantizer} — builder default {@code 0}; VP8 native default {@code 4}, VP9 native
+ *       default {@code 0}.
+ *   <li>{@link #timebaseNumerator}/{@link #timebaseDenominator} — builder default {@code {1, 1000}}
+ *       (millisecond timestamps); native default {@code {1, 30}} for both codecs.
+ *   <li>{@link #threads} — builder default {@code 1}; VP8 native default {@code 0} (codec treats as
+ *       1 thread), VP9 native default {@code 8}.
+ *   <li>{@link #maxKeyframeDistance} — builder default {@code 0} (delegates to the codec); native
+ *       default {@code 128} for both codecs.
+ *   <li>{@link #lagInFrames} — builder default {@code 0}; VP8 native default {@code 0}, VP9 native
+ *       default {@code 25}.
+ * </ul>
+ *
+ * <p>All other exposed fields ({@link #targetBitrateKbps}, {@link #rateControlMode}, {@link
+ * #maxQuantizer}, {@link #frameDropThreshold}, {@link #keyframeMode}, etc.) match the libvpx
+ * defaults for both codecs.
+ *
  * @param width The width of the video frame in pixels.
  * @param height The height of the video frame in pixels.
  * @param targetBitrateKbps The target bitrate in kilobits per second.
@@ -268,7 +290,8 @@ public record VpxEncoderConfig(
         }
 
         /**
-         * Sets the target bitrate in kilobits per second. Default: {@code 256}.
+         * Sets the target bitrate in kilobits per second. Default: {@code 256}. Libvpx default:
+         * {@code 256} ({@code rc_target_bitrate}).
          *
          * @param value target bitrate in kbps.
          * @return this builder.
@@ -281,6 +304,7 @@ public record VpxEncoderConfig(
         /**
          * Sets the frame-drop threshold. {@code 0} disables frame dropping; {@code 1}–{@code 100}
          * is the under-shoot percentage at which the encoder may drop frames. Default: {@code 0}.
+         * Libvpx default: {@code 0} ({@code rc_dropframe_thresh}).
          *
          * @param value frame-drop threshold.
          * @return this builder.
@@ -291,7 +315,9 @@ public record VpxEncoderConfig(
         }
 
         /**
-         * Sets the number of encoding threads. Default: {@code 1}.
+         * Sets the number of encoding threads. Default: {@code 1}. VP8 libvpx default: {@code 0}
+         * ({@code g_threads}; the VP8 codec treats {@code 0} as 1 thread internally). VP9 libvpx
+         * default: {@code 8}.
          *
          * @param value thread count.
          * @return this builder.
@@ -302,7 +328,8 @@ public record VpxEncoderConfig(
         }
 
         /**
-         * Sets the timebase numerator. Default: {@code 1}.
+         * Sets the timebase numerator. Default: {@code 1}. Libvpx default: {@code 1} ({@code
+         * g_timebase.num}).
          *
          * @param value timebase numerator.
          * @return this builder.
@@ -313,7 +340,8 @@ public record VpxEncoderConfig(
         }
 
         /**
-         * Sets the timebase denominator. Default: {@code 1000} (millisecond timestamps).
+         * Sets the timebase denominator. Default: {@code 1000} (millisecond timestamps). Libvpx
+         * default: {@code 30} ({@code g_timebase.den}).
          *
          * @param value timebase denominator.
          * @return this builder.
@@ -385,7 +413,8 @@ public record VpxEncoderConfig(
         }
 
         /**
-         * Sets the rate-control mode. Default: {@link RateControlMode#VBR}.
+         * Sets the rate-control mode. Default: {@link RateControlMode#VBR}. Libvpx default: {@code
+         * VPX_VBR} ({@code rc_end_usage}).
          *
          * @param value the {@link RateControlMode} to use.
          * @return this builder.
@@ -397,7 +426,8 @@ public record VpxEncoderConfig(
 
         /**
          * Sets the maximum distance between automatically placed key frames. {@code 0} leaves the
-         * codec default unchanged (typically unlimited). Default: {@code 0}.
+         * codec default unchanged. Default: {@code 0}. Libvpx default: {@code 128} ({@code
+         * kf_max_dist}).
          *
          * @param value max key-frame distance in frames.
          * @return this builder.
@@ -408,7 +438,8 @@ public record VpxEncoderConfig(
         }
 
         /**
-         * Sets the key-frame placement mode. Default: {@link KeyframeMode#AUTO}.
+         * Sets the key-frame placement mode. Default: {@link KeyframeMode#AUTO}. Libvpx default:
+         * {@code VPX_KF_AUTO} ({@code kf_mode}).
          *
          * @param value the {@link KeyframeMode} to use.
          * @return this builder.
@@ -420,7 +451,8 @@ public record VpxEncoderConfig(
 
         /**
          * Sets the codec profile. For VP8: {@code 0}–{@code 3} (typically {@code 0}). For VP9:
-         * controls colour-space/bit-depth handling. Default: {@code 0}.
+         * controls colour-space/bit-depth handling. Default: {@code 0}. Libvpx default: {@code 0}
+         * ({@code g_profile}).
          *
          * @param value codec profile index.
          * @return this builder.
@@ -432,7 +464,8 @@ public record VpxEncoderConfig(
 
         /**
          * Sets the encoder usage hint ({@code g_usage}). {@code 0} is general-purpose encoding;
-         * {@code 1} selects the real-time preset for VP8. Default: {@code 0}.
+         * {@code 1} selects the real-time preset for VP8. Default: {@code 0}. Libvpx default:
+         * {@code 0}.
          *
          * @param value usage hint value.
          * @return this builder.
@@ -444,7 +477,8 @@ public record VpxEncoderConfig(
 
         /**
          * Enables or disables error-resilient encoding. When {@code true} the stream can be
-         * partially decoded in the presence of packet loss. Default: {@code false}.
+         * partially decoded in the presence of packet loss. Default: {@code false}. Libvpx default:
+         * {@code false} ({@code g_error_resilient}).
          *
          * @param value {@code true} to enable error resilience.
          * @return this builder.
@@ -456,7 +490,8 @@ public record VpxEncoderConfig(
 
         /**
          * Sets the lookahead depth in frames ({@code g_lag_in_frames}). {@code 0} disables
-         * lookahead and is required for real-time streaming. Default: {@code 0}.
+         * lookahead and is required for real-time streaming. Default: {@code 0}. VP8 libvpx
+         * default: {@code 0}. VP9 libvpx default: {@code 25}.
          *
          * @param value lag-in-frames value.
          * @return this builder.
@@ -468,8 +503,8 @@ public record VpxEncoderConfig(
 
         /**
          * Sets the maximum quantiser index ({@code rc_max_quantizer}). Range: {@code 0}–{@code 63}.
-         * Higher values allow more compression at lower quality. Default: {@code 63} (libvpx
-         * default). The legacy JNI encoder used {@code 54}.
+         * Higher values allow more compression at lower quality. Default: {@code 63}. Libvpx
+         * default: {@code 63}. The legacy JNI encoder used {@code 54}.
          *
          * @param value maximum quantiser index.
          * @return this builder.
@@ -481,7 +516,8 @@ public record VpxEncoderConfig(
 
         /**
          * Sets the minimum quantiser index ({@code rc_min_quantizer}). Range: {@code 0}–{@code 63}.
-         * Lower values produce higher quality at the cost of bitrate. Default: {@code 0}.
+         * Lower values produce higher quality at the cost of bitrate. Default: {@code 0}. VP8
+         * libvpx default: {@code 4} ({@code rc_min_quantizer}). VP9 libvpx default: {@code 0}.
          *
          * @param value minimum quantiser index.
          * @return this builder.
@@ -490,6 +526,61 @@ public record VpxEncoderConfig(
             this.minQuantizer = value;
             return this;
         }
+
+        // =====================================================================
+        // UNEXPOSED libvpx vpx_codec_enc_cfg_t FIELDS
+        // Sources: vp8_cx_iface.c and vp9_cx_iface.c
+        //          (VPX_ENCODER_ABI_VERSION = 39, libvpx 1.16.0)
+        //          VP8 defaults shown; VP9 differences annotated as (VP9: ...)
+        // =====================================================================
+        // These fields exist in the native config struct but are not yet
+        // surfaced by VpxEncoderConfig.  Update this table as new parameters
+        // are added to the Builder above.
+        //
+        // ---- Bit-depth (VP8/VP9 only support 8-bit in practice) ----
+        // g_bit_depth              VPX_BITS_8
+        // g_input_bit_depth        8
+        //
+        // ---- Multi-pass (2-pass is rarely used for VP8) ----
+        // g_pass                   VPX_RC_ONE_PASS
+        // rc_twopass_stats_in      {NULL, 0}
+        // rc_firstpass_mb_stats_in {NULL, 0}
+        // rc_two_pass_vbrbias      50
+        // rc_two_pass_vbrmin_section      0
+        // rc_two_pass_vbrmax_section      400  (VP9: 2000)
+        // rc_2pass_vbr_corpus_complexity  0  (VP9 only)
+        //
+        // ---- Spatial resampling / dynamic resize ----
+        // rc_resize_allowed        0
+        // rc_scaled_width          1    (VP9: 0)
+        // rc_scaled_height         1    (VP9: 0)
+        // rc_resize_down_thresh    60
+        // rc_resize_up_thresh      30
+        //
+        // ---- Rate-control buffer model ----
+        // rc_undershoot_pct        100  (VP9: 25)
+        // rc_overshoot_pct         100  (VP9: 25)
+        // rc_max_buffer_size       6000  (ms)
+        // rc_buffer_initial_size   4000  (ms)
+        // rc_buffer_optimal_size   5000  (ms)
+        //
+        // ---- Keyframe ----
+        // kf_min_dist              0  (minimum frames between keyframes)
+        //
+        // ---- Scalable video coding (SVC / temporal layers) ----
+        // ss_number_layers         VPX_SS_DEFAULT_LAYERS
+        // ss_target_bitrate[]      {0}
+        // ts_number_layers         1
+        // ts_target_bitrate[]      {0}
+        // ts_rate_decimator[]      {0}
+        // ts_periodicity           0
+        // ts_layer_id[]            {0}
+        // layer_target_bitrate[]   {0}
+        // temporal_layering_mode   0
+        //
+        // ---- Experimental Vizier RC (internal; unlikely to be needed) ----
+        // use_vizier_rc_params     0  (+ ~12 associated *_factor fields, all {1,1})
+        // =====================================================================
 
         /**
          * Builds and returns the immutable {@link VpxEncoderConfig}.
