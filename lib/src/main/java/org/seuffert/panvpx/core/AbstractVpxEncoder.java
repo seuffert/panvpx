@@ -36,6 +36,7 @@ public abstract class AbstractVpxEncoder implements AutoCloseable {
     private final Arena arena;
     private final MemorySegment codecCtx;
     private final MemorySegment iterPtr;
+    private final long encodingDeadline;
     private final AtomicBoolean closed = new AtomicBoolean();
 
     /**
@@ -77,6 +78,13 @@ public abstract class AbstractVpxEncoder implements AutoCloseable {
                             tempCodecCtx, iface, encCfg, 0, VpxFFI.VPX_ENCODER_ABI_VERSION());
             checkError(tempCodecCtx, res, "Failed to initialize encoder");
 
+            // 4. Apply cpu_used control (VP8E_SET_CPUUSED is shared between VP8 and VP9)
+            res =
+                    VpxFFI.vpx_codec_control_
+                            .makeInvoker(ValueLayout.JAVA_INT)
+                            .apply(tempCodecCtx, VpxFFI.VP8E_SET_CPUUSED(), config.cpuUsed());
+            checkError(tempCodecCtx, res, "Failed to set cpu_used");
+
             // Allocate iterator pointer for vpx_codec_get_cx_data
             tempIterPtr = arena.allocate(ValueLayout.ADDRESS);
             success = true;
@@ -87,6 +95,7 @@ public abstract class AbstractVpxEncoder implements AutoCloseable {
         }
         codecCtx = tempCodecCtx;
         iterPtr = tempIterPtr;
+        encodingDeadline = config.deadline();
     }
 
     /**
@@ -109,28 +118,36 @@ public abstract class AbstractVpxEncoder implements AutoCloseable {
             final VpxImage image, final long pts, final long duration, final long flags) {
         final int res =
                 VpxFFI.vpx_codec_encode(
-                        codecCtx,
-                        image.nativeImage(),
-                        pts,
-                        duration,
-                        flags,
-                        VpxFFI.VPX_DL_REALTIME());
+                        codecCtx, image.nativeImage(), pts, duration, flags, encodingDeadline);
         checkError(codecCtx, res, "Failed to encode frame");
         return extractPackets();
     }
 
     /**
-     * Flushes the encoder, returning any delayed packets. Uses {@code VPX_DL_BEST_QUALITY}
-     * (deadline = 0) so libvpx is allowed to spend as much time as needed to drain the lookahead
-     * buffer completely. Callers must consume the returned packets before the next {@link #encode}
-     * or {@link #flush} call — see {@link VpxPacket} for the memory-lifetime contract.
+     * Flushes one batch of delayed packets from the encoder's lookahead buffer. Uses the same
+     * deadline that was supplied at construction time, so the flush respects the configured
+     * quality/speed trade-off (e.g. realtime vs. good-quality).
      *
-     * @return A list of delayed encoded packets.
+     * <p><strong>Important — call in a loop for VP9:</strong> VP9 encoders configured with a
+     * positive {@code g_lag_in_frames} require one {@code flush()} call per buffered frame to fully
+     * drain the lookahead. Always call in a loop until the returned list is empty:
+     *
+     * <pre>{@code
+     * List<VpxPacket> batch;
+     * do {
+     *     batch = encoder.flush();
+     *     batch.forEach(pkt -> consume(pkt));
+     * } while (!batch.isEmpty());
+     * }</pre>
+     *
+     * <p>Callers must consume the returned packets before the next {@link #encode} or {@link
+     * #flush} call — see {@link VpxPacket} for the memory-lifetime contract.
+     *
+     * @return A list of delayed encoded packets (may be empty when the buffer is fully drained).
      */
     public List<VpxPacket> flush() {
         final int res =
-                VpxFFI.vpx_codec_encode(
-                        codecCtx, MemorySegment.NULL, 0, 0, 0, VpxFFI.VPX_DL_BEST_QUALITY());
+                VpxFFI.vpx_codec_encode(codecCtx, MemorySegment.NULL, 0, 0, 0, encodingDeadline);
         checkError(codecCtx, res, "Failed to flush encoder");
         return extractPackets();
     }
@@ -146,6 +163,22 @@ public abstract class AbstractVpxEncoder implements AutoCloseable {
         }
         VpxFFI.vpx_codec_destroy(codecCtx);
         arena.close();
+    }
+
+    /**
+     * Applies an integer codec control to the native encoder context. Call this from subclass
+     * constructors (after {@code super()}) to configure codec-specific controls such as row-based
+     * multithreading or tile columns.
+     *
+     * @param ctrlId The control identifier (e.g. {@link VpxFFI#VP9E_SET_ROW_MT()}).
+     * @param value The integer value to set.
+     */
+    protected final void codecControl(final int ctrlId, final int value) {
+        final int res =
+                VpxFFI.vpx_codec_control_
+                        .makeInvoker(ValueLayout.JAVA_INT)
+                        .apply(codecCtx, ctrlId, value);
+        checkError(codecCtx, res, "Failed to apply codec control " + ctrlId);
     }
 
     private List<VpxPacket> extractPackets() {

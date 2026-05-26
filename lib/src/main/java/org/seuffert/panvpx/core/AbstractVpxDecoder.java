@@ -129,6 +129,31 @@ public abstract class AbstractVpxDecoder implements AutoCloseable {
     }
 
     /**
+     * Signals end-of-stream to the decoder and returns any frames that were buffered in the codec's
+     * internal pipeline. Call in a loop until the returned list is empty to fully drain the
+     * decoder:
+     *
+     * <pre>{@code
+     * List<VpxImage> batch;
+     * do {
+     *     batch = decoder.flush();
+     *     batch.forEach(img -> consume(img));
+     * } while (!batch.isEmpty());
+     * }</pre>
+     *
+     * <p><strong>Lifetime warning:</strong> the returned {@link VpxImage} instances wrap
+     * libvpx-internal buffers valid only until the next {@code decode()} or {@code flush()} call.
+     *
+     * @return delayed decoded frames; empty when the pipeline is fully drained.
+     */
+    public List<VpxImage> flush() {
+        final int res =
+                VpxFFI.vpx_codec_decode(codecCtx, MemorySegment.NULL, 0, MemorySegment.NULL, 0);
+        checkError(codecCtx, res, "Failed to flush decoder");
+        return extractFrames();
+    }
+
+    /**
      * Destroys the native decoder context and releases all associated native memory. Safe to call
      * more than once; subsequent calls are no-ops.
      */

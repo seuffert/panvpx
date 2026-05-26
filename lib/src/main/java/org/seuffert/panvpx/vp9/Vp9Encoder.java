@@ -18,6 +18,16 @@ public final class Vp9Encoder extends AbstractVpxEncoder {
      */
     public Vp9Encoder(final VpxEncoderConfig config) {
         super(config, VpxFFI.vpx_codec_vp9_cx());
+        if (config.rowMt()) {
+            codecControl(VpxFFI.VP9E_SET_ROW_MT(), 1);
+        }
+        if (config.tileColumns() > 1) {
+            // tileColumns is the actual column count (2, 4, 8, … 64).
+            // libvpx expects the log2 of that count (1, 2, 3, … 6 respectively).
+            codecControl(
+                    VpxFFI.VP9E_SET_TILE_COLUMNS(),
+                    Integer.numberOfTrailingZeros(config.tileColumns()));
+        }
     }
 
     /**

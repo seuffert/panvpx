@@ -18,6 +18,13 @@ public final class Vp8Encoder extends AbstractVpxEncoder {
      */
     public Vp8Encoder(final VpxEncoderConfig config) {
         super(config, VpxFFI.vpx_codec_vp8_cx());
+        if (config.tokenPartitions() > 1) {
+            // tokenPartitions is the actual partition count (2, 4, or 8).
+            // libvpx expects the log2 of that count (1, 2, or 3 respectively).
+            codecControl(
+                    VpxFFI.VP8E_SET_TOKEN_PARTITIONS(),
+                    Integer.numberOfTrailingZeros(config.tokenPartitions()));
+        }
     }
 
     @Override
