@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Maven Central publishing via the Vanniktech Maven Publish plugin: running a `v*.*.*` tag
+  pipeline now automatically signs and publishes the release to Maven Central (requires
+  five CI/CD variables — see `.gitlab-ci.yml` header for details).
+
 ### Changed
 - Replaced all `assertTrue(count > 0, ...)` test assertions with exact `assertEquals(expected, count, ...)`
   to catch missing frames rather than merely confirming non-empty output.

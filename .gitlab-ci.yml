@@ -14,6 +14,17 @@ variables:
   # so a persistent daemon process is pure overhead.
   GRADLE_OPTS: "-Dorg.gradle.daemon=false"
 
+  # Maven Central credentials and GPG signing key — set these as masked
+  # CI/CD variables in GitLab (Settings → CI/CD → Variables):
+  #   ORG_GRADLE_PROJECT_mavenCentralUsername   — Central Portal token username
+  #   ORG_GRADLE_PROJECT_mavenCentralPassword   — Central Portal token password
+  #   ORG_GRADLE_PROJECT_signingInMemoryKeyId   — last 8 chars of GPG key ID
+  #   ORG_GRADLE_PROJECT_signingInMemoryKeyPassword — GPG passphrase
+  #   MAVEN_SIGNING_KEY_BASE64                  — base64-encoded armored private key
+  #     GitLab masked variables cannot contain whitespace, so the key must be
+  #     base64-encoded. Obtain with:
+  #       gpg --export-secret-keys --armor <KEY_FINGERPRINT> | base64 -w0
+
 # Avoid duplicate pipelines — only run for MRs, pushes to main, and tags.
 workflow:
   rules:
@@ -95,3 +106,23 @@ create_release:
         --tag-name "$CI_COMMIT_TAG" \
         --description "See [CHANGELOG](${CI_PROJECT_URL}/-/blob/${CI_COMMIT_TAG}/CHANGELOG.md) for details." \
         --assets-link "{\"name\":\"panvpx-${RELEASE_VERSION}.jar\",\"url\":\"${CI_PROJECT_URL}/-/jobs/artifacts/${CI_COMMIT_TAG}/raw/lib/build/libs/panvpx-${RELEASE_VERSION}.jar?job=build_and_test\"}"
+
+# ---------------------------------------------------------------------------
+# Publish to Maven Central — version tags only
+# ---------------------------------------------------------------------------
+# Only runs when all five signing/credentials variables are present so that
+# the job is cleanly skipped on forks or when the secrets are not configured.
+publish_to_maven_central:
+  stage: release
+  needs:
+    - job: build_and_test
+      artifacts: true
+    - job: create_release
+  rules:
+    - if: "$CI_COMMIT_TAG =~ /^v\\d+\\.\\d+\\.\\d+$/ && $ORG_GRADLE_PROJECT_mavenCentralUsername && $ORG_GRADLE_PROJECT_mavenCentralPassword && $MAVEN_SIGNING_KEY_BASE64 && $ORG_GRADLE_PROJECT_signingInMemoryKeyId && $ORG_GRADLE_PROJECT_signingInMemoryKeyPassword"
+  script:
+    # Decode the base64-encoded armored key into the env var that Gradle reads
+    # as the signingInMemoryKey project property. Storing it base64-encoded
+    # avoids GitLab's masked-variable whitespace restriction.
+    - export ORG_GRADLE_PROJECT_signingInMemoryKey=$(echo "$MAVEN_SIGNING_KEY_BASE64" | base64 -d)
+    - ./gradlew publishAndReleaseToMavenCentral --no-daemon --build-cache

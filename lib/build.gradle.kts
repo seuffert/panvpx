@@ -3,13 +3,16 @@ import net.ltgt.gradle.errorprone.errorprone
 plugins {
     java
     `java-library`
-    `maven-publish`
     checkstyle
     pmd
     alias(libs.plugins.errorprone)
     alias(libs.plugins.spotbugs)
     alias(libs.plugins.spotless)
+    alias(libs.plugins.vanniktech.publish)
 }
+
+group = providers.gradleProperty("group").get()
+version = providers.gradleProperty("version").get()
 
 
 java {
@@ -91,4 +94,42 @@ tasks.withType<Javadoc> {
 tasks.test {
     useJUnitPlatform()
     jvmArgs("--enable-native-access=ALL-UNNAMED")
+}
+
+// ---------------------------------------------------------------------------
+// Maven Central publishing
+// ---------------------------------------------------------------------------
+mavenPublishing {
+    publishToMavenCentral()
+    signAllPublications()
+
+    coordinates(group.toString(), "panvpx", version.toString())
+
+    pom {
+        name.set("panvpx")
+        description.set(
+            "High-level Java bindings for libvpx (VP8/VP9) via the JDK Panama FFM API"
+        )
+        inceptionYear.set("2025")
+        url.set("https://gitlab.com/org.seuffert/panvpx")
+        licenses {
+            license {
+                name.set("Apache-2.0")
+                url.set("https://www.apache.org/licenses/LICENSE-2.0")
+                distribution.set("https://www.apache.org/licenses/LICENSE-2.0")
+            }
+        }
+        developers {
+            developer {
+                id.set("seuffert")
+                name.set("seuffert")
+                url.set("https://gitlab.com/org.seuffert")
+            }
+        }
+        scm {
+            url.set("https://gitlab.com/org.seuffert/panvpx")
+            connection.set("scm:git:https://gitlab.com/org.seuffert/panvpx.git")
+            developerConnection.set("scm:git:https://gitlab.com/org.seuffert/panvpx.git")
+        }
+    }
 }

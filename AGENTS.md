@@ -110,7 +110,8 @@ To bump the project version (e.g. to `vX.Y.Z`):
 6. **Verify the build is still green** — run `./gradlew build --rerun-tasks` again.
 7. **Commit** — `git add -A && git commit -m "bumping version to vX.Y.Z"`.
 8. **Tag and push** — the CI pipeline's `release` stage will automatically create a GitLab
-   Release (with a CHANGELOG link and a JAR asset) once the `build_and_test` job succeeds.
+   Release (with a CHANGELOG link and a JAR asset) and, when the five Maven Central CI/CD
+   variables are set, publish the release to Maven Central via `publishAndReleaseToMavenCentral`.
 
    Create an **annotated tag** with a human-readable release description:
    ```fish
