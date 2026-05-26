@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `VpxEncoderConfig.Builder`: fluent builder for encoder configuration, accessible via
+  `VpxEncoderConfig.builder(width, height)`.
+- Nine new `VpxEncoderConfig` record components matching legacy JNI encoder parameters:
+  `rateControlMode` (`RateControlMode` enum: VBR/CBR/CQ/Q), `maxKeyframeDistance`,
+  `keyframeMode` (`KeyframeMode` enum: AUTO/DISABLED), `profile`, `usage`,
+  `errorResilient`, `lagInFrames`, `maxQuantizer`, and `minQuantizer`.
+- All new fields are wired through `AbstractVpxEncoder` to the corresponding libvpx FFI
+  setters (`rc_end_usage`, `kf_max_dist`, `kf_mode`, `g_profile`, `g_usage`,
+  `g_error_resilient`, `g_lag_in_frames`, `rc_max_quantizer`, `rc_min_quantizer`).
+- `VpxEncoderConfigBuilderTest`: builder defaults, all-fields round-trip, functional CBR
+  encode, keyframe-interval, error-resilient, and quantiser acceptance tests.
+
 ## [0.3.3] — 2026-05-26
 
 ### Fixed
