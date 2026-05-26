@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] — 2026-05-26
+
 ### Added
 - Maven Central publishing via the Vanniktech Maven Publish plugin: running a `v*.*.*` tag
   pipeline now automatically signs and publishes the release to Maven Central (requires
@@ -128,7 +130,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   caused libvpx to skip frames still held in its lookahead buffer. Changed to `VPX_DL_BEST_QUALITY`
   (deadline = 0) so all delayed frames are drained completely on flush.
 
-[Unreleased]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.3.0...HEAD
+[Unreleased]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.3.1...HEAD
+[0.3.1]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.3.0...v0.3.1
 [0.3.0]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.2.0...v0.3.0
 [0.2.0]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.1.0...v0.2.0
 [0.1.0]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.0.1...v0.1.0
