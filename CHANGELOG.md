@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Replaced all `assertTrue(count > 0, ...)` test assertions with exact `assertEquals(expected, count, ...)`
+  to catch missing frames rather than merely confirming non-empty output.
+- Replaced single `encoder.flush()` calls with `do { … } while (!flushed.isEmpty())` drain loops
+  in all unit/integration tests to fully drain the VP9 lookahead buffer before asserting counts.
+
 ## [0.3.0] — 2026-05-26
 
 ### Added
