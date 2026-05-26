@@ -35,6 +35,15 @@ Iterative implementation of a Java/JDK25 wrapper for libvpx using Project Panama
 - `lib/src/main/java/org/seuffert/panvpx/vp8/Vp8Encoder.java` — VP8 encoder
 - `lib/src/test/java/org/seuffert/panvpx/vp8/Vp8EncoderTest.java` — VP8 encoder tests
 
+6. **Phase 6: Benchmark Module** ✅ Completed
+   - New `:benchmark` Gradle subproject with `BenchmarkRunner` CLI entry point
+   - `EncoderBenchmark` and `DecoderBenchmark` — measure encode/decode throughput (fps)
+     with correct flush timing and lookahead-draining warmup
+   - `SyntheticFrameSource` — three-wave interference pattern for compressor-resistant frames
+   - `--synthetic`, `--help`, hard-error on unknown args; defaults `--frames=25 --warmup=3`
+   - `VpxEncoderConfig` extended: `threads`, `preset`, `cpuUsed`, `rowMt`, `tileColumns`, `tokenPartitions`
+   - Pipeline mode removed (encoder + decoder sequential, always dominated by encoder)
+
 **Decisions**
 - Language: Pure Java with JDK 25 (refactored from Kotlin).
 - Architecture: Unified library for VP8/VP9, Encoder/Decoder inside `lib` module.

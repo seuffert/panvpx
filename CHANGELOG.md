@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- New `:benchmark` Gradle subproject with a CLI benchmark runner for VP8/VP9 encoder
+  and decoder throughput measurement.
+- `EncoderBenchmark` and `DecoderBenchmark` measure encode/decode throughput in fps;
+  flush is included in elapsed time and warmup fully drains the codec lookahead before
+  measurement begins.
+- `SyntheticFrameSource` generates temporally varied I420 frames using three independent
+  interference waves, a 4×4 XOR texture, and LCG noise — resistant to trivial motion
+  prediction shortcuts.
+- `--synthetic` flag in the benchmark CLI to use generated frames instead of the built-in clip.
+- `--help` / no-args shows full usage text with OPTIONS and EXAMPLES.
+- Unknown CLI arguments are a hard error (exit 1) instead of being silently ignored.
+- `VpxEncoderConfig` extended with `threads`, `preset` (quality/realtime), `cpuUsed`,
+  `rowMt`, `tileColumns`, and `tokenPartitions` for benchmark parametrization.
+
+### Changed
+- Benchmark defaults: `--frames=25`, `--warmup=3`.
+
+### Removed
+- Pipeline benchmark mode: sequential encode→decode adds no information beyond
+  the individual encoder and decoder results.
+
 ## [0.2.0] — 2026-05-26
 
 ### Added
