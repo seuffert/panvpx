@@ -5,6 +5,7 @@
 [![Maven Central](https://img.shields.io/maven-central/v/org.seuffert/panvpx)](https://central.sonatype.com/artifact/org.seuffert/panvpx)
 [![Java](https://img.shields.io/badge/Java-25%2B-orange?logo=openjdk)](https://openjdk.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Javadoc](https://javadoc.io/badge2/org.seuffert/panvpx/javadoc.svg)](https://javadoc.io/doc/org.seuffert/panvpx)
 
 panvpx is a lightweight, JNI-free Java wrapper for [libvpx](https://www.webmproject.org/code/) (VP8/VP9 video codec). It uses the [Project Panama Foreign Function & Memory (FFM) API](https://openjdk.org/jeps/454) — no JNI glue code required.
 
