@@ -12,14 +12,32 @@ import org.seuffert.panvpx.vp8.Vp8Encoder;
 
 class VpxEncoderConfigBuilderTest {
 
-    // --- Builder defaults match the 2-arg convenience constructor ---
+    // --- Builder defaults ---
 
     @Test
-    void testBuilderDefaultsMatchConvenienceConstructor() {
-        final VpxEncoderConfig fromConstructor = new VpxEncoderConfig(320, 240);
-        final VpxEncoderConfig fromBuilder = VpxEncoderConfig.builder(320, 240).build();
-        assertEquals(
-                fromConstructor, fromBuilder, "Builder defaults should equal 2-arg constructor");
+    void testBuilderDefaults() {
+        final VpxEncoderConfig config = VpxEncoderConfig.builder(320, 240).build();
+        assertEquals(320, config.width());
+        assertEquals(240, config.height());
+        assertEquals(256, config.targetBitrateKbps());
+        assertEquals(0, config.frameDropThreshold());
+        assertEquals(1, config.threads());
+        assertEquals(1, config.timebaseNumerator());
+        assertEquals(1_000, config.timebaseDenominator());
+        assertEquals(VpxEncoderConfig.DEADLINE_REALTIME, config.deadline());
+        assertEquals(0, config.cpuUsed());
+        assertFalse(config.rowMt());
+        assertEquals(0, config.tileColumns());
+        assertEquals(0, config.tokenPartitions());
+        assertEquals(VpxEncoderConfig.RateControlMode.VBR, config.rateControlMode());
+        assertEquals(0, config.maxKeyframeDistance());
+        assertEquals(VpxEncoderConfig.KeyframeMode.AUTO, config.keyframeMode());
+        assertEquals(0, config.profile());
+        assertEquals(0, config.usage());
+        assertFalse(config.errorResilient());
+        assertEquals(0, config.lagInFrames());
+        assertEquals(63, config.maxQuantizer());
+        assertEquals(0, config.minQuantizer());
     }
 
     // --- All builder setters round-trip through record accessors ---

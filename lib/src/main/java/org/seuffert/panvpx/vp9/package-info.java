@@ -22,17 +22,15 @@
  * byte[] i420Frame = new byte[width * height * 3 / 2];
  * // ... fill i420Frame with pixel data ...
  *
- * VpxEncoderConfig config = new VpxEncoderConfig(
- *         width, height,
- *         1500,    // targetBitrateKbps
- *         0,       // frameDropThreshold — disabled
- *         4,       // threads
- *         1, 1000, // timebase: 1/1000 ms
- *         VpxEncoderConfig.DEADLINE_GOOD_QUALITY,
- *         2,       // cpuUsed
- *         true,    // rowMt — row-level multithreading
- *         2,       // tileColumns
- *         0);      // tokenPartitions (VP8 only)
+ * VpxEncoderConfig config =
+ *         VpxEncoderConfig.builder(width, height)
+ *                 .targetBitrateKbps(1500)
+ *                 .threads(4)
+ *                 .deadline(VpxEncoderConfig.DEADLINE_GOOD_QUALITY)
+ *                 .cpuUsed(2)
+ *                 .rowMt(true)
+ *                 .tileColumns(2)
+ *                 .build();
  *
  * try (Vp9Encoder encoder = new Vp9Encoder(config)) {
  *     long pts = 0;

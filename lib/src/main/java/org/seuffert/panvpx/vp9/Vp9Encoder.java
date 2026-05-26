@@ -87,16 +87,16 @@ public final class Vp9Encoder extends AbstractVpxEncoder {
      * Convenience constructor: initializes the VP9 encoder with 256&nbsp;kbps target bitrate, a
      * single encoding thread, and a 1/1000&nbsp;ms timebase at real-time deadline.
      *
-     * <p>Equivalent to {@code new Vp9Encoder(new VpxEncoderConfig(width, height))}. Suitable for
-     * quick prototyping. For production use, construct a {@link VpxEncoderConfig} explicitly to
-     * control bitrate, thread count, deadline, and VP9-specific options.
+     * <p>Equivalent to {@code new Vp9Encoder(VpxEncoderConfig.builder(width, height).build())}.
+     * Suitable for quick prototyping. For production use, construct a {@link VpxEncoderConfig}
+     * explicitly to control bitrate, thread count, deadline, and VP9-specific options.
      *
      * @param width The frame width in pixels.
      * @param height The frame height in pixels.
      * @throws VpxException if the native encoder cannot be initialized.
      */
     public Vp9Encoder(final int width, final int height) {
-        this(new VpxEncoderConfig(width, height));
+        this(VpxEncoderConfig.builder(width, height).build());
     }
 
     @Override

@@ -41,7 +41,7 @@ class Vp8DecoderTest {
             dummyData[i] = (byte) (i % 255);
         }
 
-        final VpxEncoderConfig encConfig = new VpxEncoderConfig(width, height);
+        final VpxEncoderConfig encConfig = VpxEncoderConfig.builder(width, height).build();
         final VpxDecoderConfig decConfig = new VpxDecoderConfig();
 
         int framesDecoded = 0;
@@ -149,7 +149,7 @@ class Vp8DecoderTest {
         final int frameSize = width * height * 3 / 2;
         final int frameCount = 5;
 
-        try (Vp8Encoder encoder = new Vp8Encoder(new VpxEncoderConfig(width, height));
+        try (Vp8Encoder encoder = new Vp8Encoder(VpxEncoderConfig.builder(width, height).build());
                 Vp8Decoder decoder = new Vp8Decoder(new VpxDecoderConfig())) {
             int totalDecoded = 0;
 
@@ -196,7 +196,7 @@ class Vp8DecoderTest {
         final int height = 240;
         final int frameSize = width * height * 3 / 2;
 
-        try (Vp8Encoder encoder = new Vp8Encoder(new VpxEncoderConfig(width, height));
+        try (Vp8Encoder encoder = new Vp8Encoder(VpxEncoderConfig.builder(width, height).build());
                 Vp8Decoder decoder = new Vp8Decoder(new VpxDecoderConfig());
                 VpxImage image = VpxImage.fromByteArray(new byte[frameSize], width, height)) {
 
@@ -242,7 +242,7 @@ class Vp8DecoderTest {
         final int uvDim = (width + 1) / 2;
         final int uvHeight = (height + 1) / 2;
 
-        try (Vp8Encoder encoder = new Vp8Encoder(new VpxEncoderConfig(width, height));
+        try (Vp8Encoder encoder = new Vp8Encoder(VpxEncoderConfig.builder(width, height).build());
                 Vp8Decoder decoder = new Vp8Decoder(new VpxDecoderConfig());
                 VpxImage image = VpxImage.fromByteArray(new byte[frameSize], width, height)) {
 
@@ -344,7 +344,7 @@ class Vp8DecoderTest {
         // Encode on the main thread and copy packet data to heap byte arrays before
         // the encoder (and its internal memory) is closed.
         final List<byte[]> encodedData = new ArrayList<>();
-        try (Vp8Encoder encoder = new Vp8Encoder(new VpxEncoderConfig(width, height));
+        try (Vp8Encoder encoder = new Vp8Encoder(VpxEncoderConfig.builder(width, height).build());
                 VpxImage image = VpxImage.fromByteArray(new byte[frameSize], width, height)) {
             for (final VpxPacket pkt :
                     encoder.encode(image, 0, 1000, AbstractVpxEncoder.VPX_EFLAG_FORCE_KF)) {

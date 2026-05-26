@@ -19,7 +19,7 @@ import org.seuffert.panvpx.ffi.VpxFFI;
  * <p><strong>Example &mdash; encode a sequence of frames:</strong>
  *
  * <pre>{@code
- * VpxEncoderConfig config = new VpxEncoderConfig(640, 480, 512, 2);
+ * VpxEncoderConfig config = VpxEncoderConfig.builder(640, 480).targetBitrateKbps(512).threads(2).build();
  * try (Vp8Encoder encoder = new Vp8Encoder(config)) {
  *     long pts = 0;
  *     for (byte[] rawFrame : frameSource) {

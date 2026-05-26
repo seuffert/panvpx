@@ -22,13 +22,6 @@ package org.seuffert.panvpx.core;
  * }
  * }</pre>
  *
- * <p>Simple cases are still covered by the convenience constructors:
- *
- * <pre>{@code
- * // 720p video at 1.5 Mbps, using 4 threads
- * VpxEncoderConfig config = new VpxEncoderConfig(1280, 720, 1500, 4);
- * }</pre>
- *
  * @param width The width of the video frame in pixels.
  * @param height The height of the video frame in pixels.
  * @param targetBitrateKbps The target bitrate in kilobits per second.
@@ -195,118 +188,10 @@ public record VpxEncoderConfig(
     }
 
     /**
-     * Constructs a basic encoder configuration using reasonable defaults. Target bitrate is
-     * 256&nbsp;kbps, single threaded, with a 1/1000&nbsp;ms timebase and real-time deadline.
-     *
-     * @param width The width of the video frame.
-     * @param height The height of the video frame.
-     */
-    public VpxEncoderConfig(final int width, final int height) {
-        this(
-                width,
-                height,
-                256,
-                0,
-                1,
-                1,
-                1000,
-                DEADLINE_REALTIME,
-                0,
-                false,
-                0,
-                0,
-                RateControlMode.VBR,
-                0,
-                KeyframeMode.AUTO,
-                0,
-                0,
-                false,
-                0,
-                63,
-                0);
-    }
-
-    /**
-     * Constructs a basic encoder configuration specifying bitrate and threading. Uses the real-time
-     * encoding deadline.
-     *
-     * @param width The width of the video frame.
-     * @param height The height of the video frame.
-     * @param targetBitrateKbps The target bitrate in kilobits per second.
-     * @param threads The number of threads to use.
-     */
-    public VpxEncoderConfig(
-            final int width, final int height, final int targetBitrateKbps, final int threads) {
-        this(
-                width,
-                height,
-                targetBitrateKbps,
-                0,
-                threads,
-                1,
-                1000,
-                DEADLINE_REALTIME,
-                0,
-                false,
-                0,
-                0,
-                RateControlMode.VBR,
-                0,
-                KeyframeMode.AUTO,
-                0,
-                0,
-                false,
-                0,
-                63,
-                0);
-    }
-
-    /**
-     * Constructs a basic encoder configuration specifying bitrate, threading, and encoding
-     * deadline.
-     *
-     * @param width The width of the video frame.
-     * @param height The height of the video frame.
-     * @param targetBitrateKbps The target bitrate in kilobits per second.
-     * @param threads The number of threads to use.
-     * @param deadline The per-frame encoding deadline in microseconds (see {@link
-     *     #DEADLINE_REALTIME}, {@link #DEADLINE_GOOD_QUALITY}).
-     */
-    public VpxEncoderConfig(
-            final int width,
-            final int height,
-            final int targetBitrateKbps,
-            final int threads,
-            final long deadline) {
-        this(
-                width,
-                height,
-                targetBitrateKbps,
-                0,
-                threads,
-                1,
-                1000,
-                deadline,
-                0,
-                false,
-                0,
-                0,
-                RateControlMode.VBR,
-                0,
-                KeyframeMode.AUTO,
-                0,
-                0,
-                false,
-                0,
-                63,
-                0);
-    }
-
-    /**
      * Fluent builder for {@link VpxEncoderConfig}.
      *
-     * <p>All fields default to the same values used by the convenience constructors. Only {@code
-     * width} and {@code height} are required.
+     * <p>All fields are pre-populated with sensible defaults. Only {@code width} and {@code height}
+     * are required.
      *
      * <p>Example:
      *
@@ -345,8 +230,9 @@ public record VpxEncoderConfig(
         private int minQuantizer;
 
         /**
-         * Creates a builder with the required frame dimensions. All other fields default to the
-         * same values used by {@link VpxEncoderConfig#VpxEncoderConfig(int, int)}.
+         * Creates a builder with the required frame dimensions. All other fields are pre-populated
+         * with sensible defaults (256&nbsp;kbps, 1&nbsp;thread, 1/1000&nbsp;ms timebase, real-time
+         * deadline, VBR rate control, auto keyframe mode, quantizer range 0–63).
          *
          * @param width The frame width in pixels.
          * @param height The frame height in pixels.

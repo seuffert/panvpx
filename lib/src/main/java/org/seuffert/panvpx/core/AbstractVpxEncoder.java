@@ -33,7 +33,7 @@ import org.seuffert.panvpx.ffi.vpx_rational;
  * </ol>
  *
  * <pre>{@code
- * try (Vp8Encoder encoder = new Vp8Encoder(new VpxEncoderConfig(640, 480, 512, 2))) {
+ * try (Vp8Encoder encoder = new Vp8Encoder(VpxEncoderConfig.builder(640, 480).targetBitrateKbps(512).threads(2).build())) {
  *     long pts = 0;
  *     for (byte[] rawFrame : frameSource) {
  *         try (VpxImage image = VpxImage.fromByteArray(rawFrame, 640, 480)) {

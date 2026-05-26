@@ -21,7 +21,7 @@
  * byte[] i420Frame = new byte[width * height * 3 / 2];
  * // ... fill i420Frame with pixel data ...
  *
- * VpxEncoderConfig config = new VpxEncoderConfig(width, height, 512, 2);
+ * VpxEncoderConfig config = VpxEncoderConfig.builder(width, height).targetBitrateKbps(512).threads(2).build();
  * try (Vp8Encoder encoder = new Vp8Encoder(config)) {
  *     long pts = 0;
  *     try (VpxImage image = VpxImage.fromByteArray(i420Frame, width, height)) {

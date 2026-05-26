@@ -19,7 +19,7 @@ class Vp8EncoderTest {
 
     @Test
     void testGetCodecName() {
-        try (Vp8Encoder encoder = new Vp8Encoder(new VpxEncoderConfig(320, 240))) {
+        try (Vp8Encoder encoder = new Vp8Encoder(VpxEncoderConfig.builder(320, 240).build())) {
             assertEquals("VP8", encoder.getCodecName(), "Codec name should be VP8");
         }
     }
@@ -38,7 +38,8 @@ class Vp8EncoderTest {
             dummyData[i] = (byte) (i % 255);
         }
 
-        final VpxEncoderConfig config = new VpxEncoderConfig(width, height, 1000, 2);
+        final VpxEncoderConfig config =
+                VpxEncoderConfig.builder(width, height).targetBitrateKbps(1000).threads(2).build();
 
         int packetsReceived = 0;
 
@@ -71,7 +72,7 @@ class Vp8EncoderTest {
     @Test
     void testInvalidConfigThrowsException() {
         // 0 width/height is invalid and should be rejected by libvpx during init
-        final VpxEncoderConfig config = new VpxEncoderConfig(0, 0);
+        final VpxEncoderConfig config = VpxEncoderConfig.builder(0, 0).build();
         final VpxException ex =
                 assertThrows(
                         VpxException.class,
@@ -87,7 +88,7 @@ class Vp8EncoderTest {
      */
     @Test
     void testConstructorFailureDoesNotLeakNativeMemory() {
-        final VpxEncoderConfig bad = new VpxEncoderConfig(0, 0);
+        final VpxEncoderConfig bad = VpxEncoderConfig.builder(0, 0).build();
         for (int i = 0; i < 500; i++) {
             assertThrows(VpxException.class, () -> new Vp8Encoder(bad));
         }
@@ -95,7 +96,7 @@ class Vp8EncoderTest {
 
     @Test
     void testEncoderUseAfterCloseThrowsException() {
-        final VpxEncoderConfig config = new VpxEncoderConfig(320, 240);
+        final VpxEncoderConfig config = VpxEncoderConfig.builder(320, 240).build();
         final Vp8Encoder encoder = new Vp8Encoder(config);
         encoder.close();
 
@@ -110,7 +111,7 @@ class Vp8EncoderTest {
 
     @Test
     void testDoubleCloseIsIdempotent() {
-        final VpxEncoderConfig config = new VpxEncoderConfig(320, 240);
+        final VpxEncoderConfig config = VpxEncoderConfig.builder(320, 240).build();
         final Vp8Encoder encoder = new Vp8Encoder(config);
 
         // First close must succeed
@@ -131,7 +132,7 @@ class Vp8EncoderTest {
         final int height = 240;
         final int frameSize = width * height * 3 / 2;
 
-        try (Vp8Encoder encoder = new Vp8Encoder(new VpxEncoderConfig(width, height))) {
+        try (Vp8Encoder encoder = new Vp8Encoder(VpxEncoderConfig.builder(width, height).build())) {
             // Encode several frames so the encoder has something to flush
             int totalPackets = 0;
             for (int i = 0; i < 5; i++) {
@@ -165,7 +166,7 @@ class Vp8EncoderTest {
         final int frameSize = width * height * 3 / 2;
         final byte[] data = new byte[frameSize];
 
-        try (Vp8Encoder encoder = new Vp8Encoder(new VpxEncoderConfig(width, height))) {
+        try (Vp8Encoder encoder = new Vp8Encoder(VpxEncoderConfig.builder(width, height).build())) {
             final List<VpxPacket> packets;
             try (VpxImage image = VpxImage.fromByteArray(data, width, height)) {
                 packets = encoder.encode(image, 0, 1000, AbstractVpxEncoder.VPX_EFLAG_FORCE_KF);
@@ -192,7 +193,7 @@ class Vp8EncoderTest {
         final int height = 240;
         final int frameSize = width * height * 3 / 2;
 
-        try (Vp8Encoder encoder = new Vp8Encoder(new VpxEncoderConfig(width, height))) {
+        try (Vp8Encoder encoder = new Vp8Encoder(VpxEncoderConfig.builder(width, height).build())) {
             // Encode first batch of frames and save copies of all emitted packets
             final List<byte[]> copies = new ArrayList<>();
             for (int i = 0; i < 3; i++) {
