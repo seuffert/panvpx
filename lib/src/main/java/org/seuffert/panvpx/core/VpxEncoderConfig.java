@@ -25,11 +25,15 @@ package org.seuffert.panvpx.core;
  * @param width The width of the video frame in pixels.
  * @param height The height of the video frame in pixels.
  * @param targetBitrateKbps The target bitrate in kilobits per second.
- * @param frameDropThreshold Controls frame dropping to hit the target bitrate. {@code 0} disables
- *     frame dropping entirely. Values {@code 1}&ndash;{@code 100} represent the percentage of the
- *     data-rate undershoot below which a frame may be dropped; e.g. {@code 30} allows the encoder
- *     to drop frames when it is more than 30&nbsp;% below the target rate.
- * @param threads The number of threads to use for encoding.
+ * @param frameDropThreshold Temporal resampling / frame-drop threshold ({@code
+ *     rc_dropframe_thresh}). {@code 0} disables frame dropping entirely. Values {@code
+ *     1}&ndash;{@code 100} define the notional decoder-buffer fullness level &mdash; as a
+ *     percentage of the optimal buffer size &mdash; below which the encoder will start dropping
+ *     frames to recoup space. Note: frame dropping via this threshold is only effective in CBR
+ *     mode; in VBR mode the value has no effect.
+ * @param threads The number of threads to use for encoding. A good starting point is the number of
+ *     real CPU cores minus one. Note that with more than one thread, repeated encodes of the same
+ *     input may not produce bit-identical output.
  * @param timebaseNumerator The numerator of the timebase fraction. Together with {@link
  *     #timebaseDenominator} this defines the unit for the {@code pts} and {@code duration}
  *     arguments passed to {@link org.seuffert.panvpx.core.AbstractVpxEncoder#encode encode()}. For
@@ -43,8 +47,13 @@ package org.seuffert.panvpx.core;
  * @param cpuUsed CPU usage / speed control. The valid range and effect differ by codec and
  *     deadline:
  *     <ul>
- *       <li><strong>VP8</strong>: 0–16. {@code 0} = best quality (slowest); {@code 16} = fastest
- *           encoding. The default is {@code 0}.
+ *       <li><strong>VP8 with {@link #DEADLINE_GOOD_QUALITY}</strong>: effective range 0–5. {@code
+ *           0} produces quality close to {@link #DEADLINE_BEST_QUALITY} at roughly twice the speed;
+ *           values 1–2 trade further quality for speed; values 4–5 disable rate-distortion
+ *           optimisation for maximum throughput. The default is {@code 0}.
+ *       <li><strong>VP8 with {@link #DEADLINE_REALTIME}</strong>: 0–15. Controls the CPU
+ *           utilisation target: approximately {@code (100*(16-cpuUsed)/16)}%. The default is {@code
+ *           0}.
  *       <li><strong>VP9 with {@link #DEADLINE_GOOD_QUALITY}</strong>: 0–5. {@code 0} = highest
  *           quality (slowest); {@code 5} = fastest within the deadline. The default is {@code 0}.
  *       <li><strong>VP9 with {@link #DEADLINE_REALTIME}</strong>: 5–8. Values below 5 are not
@@ -60,7 +69,9 @@ package org.seuffert.panvpx.core;
  * @param tokenPartitions Number of VP8 token partitions / slices (VP8 only). Pass the actual
  *     partition count: {@code 1} (or {@code 0} for codec default), {@code 2}, {@code 4}, or {@code
  *     8}. More partitions allow parallel decoding of a single frame but may slightly reduce
- *     compression efficiency. Values other than these four are invalid.
+ *     compression efficiency. For small images the default ({@code 0} or {@code 1}) is recommended;
+ *     for HD content, {@code 4} or {@code 8} partitions are commonly used. Values other than these
+ *     four are invalid.
  * @param rateControlMode The rate-control algorithm. {@link RateControlMode#VBR} (variable bitrate)
  *     targets the bitrate on average; {@link RateControlMode#CBR} (constant bitrate) attempts to
  *     hit it every frame. Default is {@link RateControlMode#VBR}.
@@ -71,22 +82,34 @@ package org.seuffert.panvpx.core;
  * @param keyframeMode Whether the encoder places key frames automatically ({@link
  *     KeyframeMode#AUTO}) or only on demand via {@link AbstractVpxEncoder#VPX_EFLAG_FORCE_KF}
  *     ({@link KeyframeMode#DISABLED}). Default is {@link KeyframeMode#AUTO}.
- * @param profile Codec profile. For VP8 this is {@code 0}–{@code 3} (typically {@code 0}); for VP9
- *     this controls colour-space/bit-depth handling. Default is {@code 0}.
+ * @param profile Codec profile. For VP8: profile {@code 0} is recommended for most use cases.
+ *     Non-zero profiles increasingly optimise for reduced-complexity decoding on low-power devices
+ *     at the expense of encode quality; for example, profile {@code 1} restricts sub-pixel
+ *     filtering to bi-linear interpolation and uses a simplified loop filter. Only consider a
+ *     non-zero value when targeting very low-power playback hardware. For VP9: controls
+ *     colour-space and bit-depth handling. Default is {@code 0}.
  * @param usage Encoder usage hint ({@code g_usage}). {@code 0} is general-purpose encoding;
  *     codec-specific values (e.g.&nbsp;{@code 1} for VP8 real-time) select alternative init tables.
  *     Default is {@code 0}.
- * @param errorResilient Enable error-resilient encoding ({@code g_error_resilient}). Produces a
- *     stream that can be partially decoded in the presence of packet loss at the cost of slightly
- *     reduced compression efficiency. Default is {@code false}.
+ * @param errorResilient Enable error-resilient encoding ({@code g_error_resilient}). When enabled,
+ *     the encoder fully resets its context tables not only at key frames but also whenever a Golden
+ *     Frame is encoded, allowing the decoder to recover from packet loss without a full key frame.
+ *     Only recommended for real-time or lossy-network scenarios (e.g. video conferencing). Default
+ *     is {@code false}.
  * @param lagInFrames Number of frames the encoder may buffer before emitting output ({@code
- *     g_lag_in_frames}). {@code 0} disables lookahead (required for real-time use). VP9 typically
- *     benefits from values of {@code 25} for offline encoding. Default is {@code 0}.
+ *     g_lag_in_frames}). {@code 0} disables lookahead (required for real-time use). For VP8
+ *     two-pass encoding with alternate-reference frames, a value of {@code 16} is commonly
+ *     recommended. VP9 typically benefits from values of {@code 25} for offline encoding. Default
+ *     is {@code 0}.
  * @param maxQuantizer Maximum quantiser index ({@code rc_max_quantizer}). Higher values allow more
  *     compression at lower quality. Range: {@code 0}–{@code 63}; default is {@code 63} (libvpx
- *     default). The legacy JNI code used {@code 54}.
+ *     default). The legacy JNI code used {@code 54}. These are control indices rather than real
+ *     quantiser values; together they act as hard quality limits that override all other
+ *     rate-control settings.
  * @param minQuantizer Minimum quantiser index ({@code rc_min_quantizer}). Lower values produce
  *     higher quality at the cost of bitrate. Range: {@code 0}–{@code 63}; default is {@code 0}.
+ *     Together with {@link #maxQuantizer} this defines a hard quality window that overrides all
+ *     other rate-control settings.
  */
 public record VpxEncoderConfig(
         int width,
@@ -134,9 +157,11 @@ public record VpxEncoderConfig(
         VBR,
 
         /**
-         * Constant bitrate. The encoder attempts to hit the configured bitrate every frame.
-         * Preferred for live-streaming and WebRTC scenarios where a predictable bitrate is
-         * required.
+         * Constant bitrate. The encoder tries to stay within notional decoder-buffer constraints
+         * rather than forcing every frame to be exactly the same size (which would harm quality).
+         * It may spend slightly more bits on a difficult frame or short section, but cannot sustain
+         * a higher-than-average data rate for long before the buffer runs empty. Preferred for
+         * live-streaming and WebRTC scenarios where a predictable bitrate is required.
          */
         CBR,
 
