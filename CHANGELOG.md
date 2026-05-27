@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `VpxEncoderConfig.BitDepth` enum (`BITS_8`, `BITS_10`, `BITS_12`) and four new
+  record components with builder setters: `bitDepth` (`g_bit_depth`),
+  `inputBitDepth` (`g_input_bit_depth`), `resizeAllowed` (`rc_resize_allowed`),
+  and `minKeyframeDistance` (`kf_min_dist`). All four fields are wired through
+  `AbstractVpxEncoder` to the corresponding libvpx FFI setters.
+
 ## [0.3.4] — 2026-05-27
 
 ### Changed
