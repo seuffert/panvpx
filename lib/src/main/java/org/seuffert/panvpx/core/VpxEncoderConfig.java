@@ -132,6 +132,27 @@ package org.seuffert.panvpx.core;
  *     higher quality at the cost of bitrate. Range: {@code 0}–{@code 63}; default is {@code 0}.
  *     Together with {@link #maxQuantizer} this defines a hard quality window that overrides all
  *     other rate-control settings.
+ * @param bitDepth Codec internal bit depth ({@code g_bit_depth}). Controls the precision used in
+ *     internal transforms. VP8 supports only {@link BitDepth#BITS_8}. VP9 additionally supports
+ *     {@link BitDepth#BITS_10} and {@link BitDepth#BITS_12}, which require a matching codec profile
+ *     (profile&nbsp;2 for 10-bit 4:2:0, profile&nbsp;3 for 12-bit or 4:4:4 content). Default:
+ *     {@link BitDepth#BITS_8}.
+ * @param inputBitDepth Bit depth of the raw input frames ({@code g_input_bit_depth}). Must match
+ *     the pixel format of the {@code VpxImage} frames passed to the encoder. For standard 8-bit YUV
+ *     content use {@code 8} (the default). When encoding high-bit-depth VP9 streams, set this to
+ *     {@code 10} or {@code 12} together with a matching {@link #bitDepth} and codec profile.
+ *     Default: {@code 8}. Libvpx default: {@code 8}.
+ * @param resizeAllowed Enable dynamic spatial resampling ({@code rc_resize_allowed}). When {@code
+ *     true}, the encoder may scale the frame dimensions down (and back up) at run-time to stay
+ *     within bitrate constraints. The resize thresholds and target dimensions ({@code
+ *     rc_resize_down_thresh}, {@code rc_resize_up_thresh}, {@code rc_scaled_width}, {@code
+ *     rc_scaled_height}) are not yet exposed; libvpx codec defaults apply when this is enabled.
+ *     Only useful in CBR mode with {@link #frameDropThreshold} also set. Default: {@code false}.
+ *     Libvpx default: {@code 0} (disabled).
+ * @param minKeyframeDistance Minimum number of frames between automatically placed key frames
+ *     ({@code kf_min_dist}). {@code 0} imposes no minimum (the codec default). Setting this to a
+ *     positive value prevents the encoder from inserting a key frame more frequently than the
+ *     specified interval even at scene cuts. Default: {@code 0}. Libvpx default: {@code 0}.
  */
 public record VpxEncoderConfig(
         int width,
@@ -154,7 +175,11 @@ public record VpxEncoderConfig(
         boolean errorResilient,
         int lagInFrames,
         int maxQuantizer,
-        int minQuantizer) {
+        int minQuantizer,
+        BitDepth bitDepth,
+        int inputBitDepth,
+        boolean resizeAllowed,
+        int minKeyframeDistance) {
 
     /** Real-time deadline (1 µs): fastest encoding, lowest quality. */
     public static final long DEADLINE_REALTIME = 1L;
@@ -223,6 +248,37 @@ public record VpxEncoderConfig(
     }
 
     /**
+     * Codec internal bit depth ({@code g_bit_depth}).
+     *
+     * <p>Controls the precision at which the codec performs its internal transforms and
+     * rate-distortion optimisation. VP8 supports only {@link #BITS_8}. VP9 additionally supports
+     * {@link #BITS_10} and {@link #BITS_12}, but these require a matching {@link
+     * VpxEncoderConfig#profile}: profile&nbsp;2 for 10-bit and profile&nbsp;3 for 12-bit 4:2:0, or
+     * profiles&nbsp;2/3 for 4:4:4 content.
+     *
+     * <p>Corresponds to the native {@code vpx_bit_depth_t} enum ({@code g_bit_depth}).
+     */
+    public enum BitDepth {
+        /**
+         * 8-bit depth ({@code VPX_BITS_8}). Supported by both VP8 and VP9. The default for all
+         * standard 8-bit YUV content.
+         */
+        BITS_8,
+
+        /**
+         * 10-bit depth ({@code VPX_BITS_10}). VP9 only. Requires profile 2 (4:2:0) or profile 3
+         * (4:4:4) and a 10-bit input {@code VpxImage}. Not supported by VP8.
+         */
+        BITS_10,
+
+        /**
+         * 12-bit depth ({@code VPX_BITS_12}). VP9 only. Requires profile 2 (4:2:0) or profile 3
+         * (4:4:4) and a 12-bit input {@code VpxImage}. Not supported by VP8.
+         */
+        BITS_12
+    }
+
+    /**
      * Creates a new {@link Builder} pre-populated with all defaults and requiring only the frame
      * dimensions.
      *
@@ -275,6 +331,10 @@ public record VpxEncoderConfig(
         private int lagInFrames;
         private int maxQuantizer = 63;
         private int minQuantizer;
+        private BitDepth bitDepth = BitDepth.BITS_8;
+        private int inputBitDepth = 8;
+        private boolean resizeAllowed;
+        private int minKeyframeDistance;
 
         /**
          * Creates a builder with the required frame dimensions. All other fields are pre-populated
@@ -527,6 +587,62 @@ public record VpxEncoderConfig(
             return this;
         }
 
+        /**
+         * Sets the codec internal bit depth ({@code g_bit_depth}). Default: {@link
+         * BitDepth#BITS_8}. VP8 supports only {@link BitDepth#BITS_8}. VP9 additionally supports
+         * {@link BitDepth#BITS_10} and {@link BitDepth#BITS_12} with matching codec profiles.
+         * Libvpx default: {@code VPX_BITS_8}.
+         *
+         * @param value the {@link BitDepth} to use.
+         * @return this builder.
+         */
+        public Builder bitDepth(final BitDepth value) {
+            this.bitDepth = value;
+            return this;
+        }
+
+        /**
+         * Sets the bit depth of the raw input frames ({@code g_input_bit_depth}). Must match the
+         * pixel format of the {@code VpxImage} frames supplied to the encoder. For standard 8-bit
+         * YUV content use {@code 8} (the default). Default: {@code 8}. Libvpx default: {@code 8}.
+         *
+         * @param value input bit depth (typically {@code 8}, {@code 10}, or {@code 12}).
+         * @return this builder.
+         */
+        public Builder inputBitDepth(final int value) {
+            this.inputBitDepth = value;
+            return this;
+        }
+
+        /**
+         * Enables or disables dynamic spatial resampling ({@code rc_resize_allowed}). When {@code
+         * true}, the encoder may scale the frame dimensions down and back up at run-time to stay
+         * within bitrate constraints. The related resize thresholds and target dimensions are not
+         * yet exposed; libvpx defaults apply. Default: {@code false}. Libvpx default: {@code 0}
+         * (disabled).
+         *
+         * @param value {@code true} to enable dynamic resize.
+         * @return this builder.
+         */
+        public Builder resizeAllowed(final boolean value) {
+            this.resizeAllowed = value;
+            return this;
+        }
+
+        /**
+         * Sets the minimum distance between automatically placed key frames ({@code kf_min_dist}).
+         * {@code 0} imposes no minimum (the codec default). A positive value prevents the encoder
+         * from inserting a key frame more frequently than the specified number of frames even at
+         * scene cuts. Default: {@code 0}. Libvpx default: {@code 0}.
+         *
+         * @param value minimum key-frame interval in frames.
+         * @return this builder.
+         */
+        public Builder minKeyframeDistance(final int value) {
+            this.minKeyframeDistance = value;
+            return this;
+        }
+
         // =====================================================================
         // UNEXPOSED libvpx vpx_codec_enc_cfg_t FIELDS
         // Sources: vp8_cx_iface.c and vp9_cx_iface.c
@@ -536,10 +652,6 @@ public record VpxEncoderConfig(
         // These fields exist in the native config struct but are not yet
         // surfaced by VpxEncoderConfig.  Update this table as new parameters
         // are added to the Builder above.
-        //
-        // ---- Bit-depth (VP8/VP9 only support 8-bit in practice) ----
-        // g_bit_depth              VPX_BITS_8
-        // g_input_bit_depth        8
         //
         // ---- Multi-pass (2-pass is rarely used for VP8) ----
         // g_pass                   VPX_RC_ONE_PASS
@@ -551,7 +663,6 @@ public record VpxEncoderConfig(
         // rc_2pass_vbr_corpus_complexity  0  (VP9 only)
         //
         // ---- Spatial resampling / dynamic resize ----
-        // rc_resize_allowed        0
         // rc_scaled_width          1    (VP9: 0)
         // rc_scaled_height         1    (VP9: 0)
         // rc_resize_down_thresh    60
@@ -563,9 +674,6 @@ public record VpxEncoderConfig(
         // rc_max_buffer_size       6000  (ms)
         // rc_buffer_initial_size   4000  (ms)
         // rc_buffer_optimal_size   5000  (ms)
-        //
-        // ---- Keyframe ----
-        // kf_min_dist              0  (minimum frames between keyframes)
         //
         // ---- Scalable video coding (SVC / temporal layers) ----
         // ss_number_layers         VPX_SS_DEFAULT_LAYERS
@@ -609,7 +717,11 @@ public record VpxEncoderConfig(
                     errorResilient,
                     lagInFrames,
                     maxQuantizer,
-                    minQuantizer);
+                    minQuantizer,
+                    bitDepth,
+                    inputBitDepth,
+                    resizeAllowed,
+                    minKeyframeDistance);
         }
     }
 }

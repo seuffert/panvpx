@@ -109,6 +109,10 @@ public abstract class AbstractVpxEncoder implements AutoCloseable {
             if (config.maxKeyframeDistance() > 0) {
                 vpx_codec_enc_cfg.kf_max_dist(encCfg, config.maxKeyframeDistance());
             }
+            vpx_codec_enc_cfg.kf_min_dist(encCfg, config.minKeyframeDistance());
+            vpx_codec_enc_cfg.g_bit_depth(encCfg, toNativeBitDepth(config.bitDepth()));
+            vpx_codec_enc_cfg.g_input_bit_depth(encCfg, config.inputBitDepth());
+            vpx_codec_enc_cfg.rc_resize_allowed(encCfg, config.resizeAllowed() ? 1 : 0);
 
             final MemorySegment timebase = vpx_codec_enc_cfg.g_timebase(encCfg);
             vpx_rational.num(timebase, config.timebaseNumerator());
@@ -285,6 +289,14 @@ public abstract class AbstractVpxEncoder implements AutoCloseable {
         return switch (mode) {
             case AUTO -> VpxFFI.VPX_KF_AUTO();
             case DISABLED -> VpxFFI.VPX_KF_DISABLED();
+        };
+    }
+
+    private static int toNativeBitDepth(final VpxEncoderConfig.BitDepth depth) {
+        return switch (depth) {
+            case BITS_8 -> VpxFFI.VPX_BITS_8();
+            case BITS_10 -> VpxFFI.VPX_BITS_10();
+            case BITS_12 -> VpxFFI.VPX_BITS_12();
         };
     }
 
