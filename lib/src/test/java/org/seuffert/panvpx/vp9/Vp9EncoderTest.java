@@ -208,4 +208,45 @@ class Vp9EncoderTest {
             }
         }
     }
+
+    /**
+     * Verifies that {@link VpxPacket#pts()} and {@link VpxPacket#duration()} correctly echo the
+     * values passed to {@link Vp9Encoder#encode}.
+     */
+    @Test
+    void testPacketPtsAndDurationAreEchoed() {
+        final int width = 320;
+        final int height = 240;
+        final int frameSize = width * height * 3 / 2;
+        final long expectedDuration = 1000L;
+
+        try (Vp9Encoder encoder = new Vp9Encoder(VpxEncoderConfig.builder(width, height).build())) {
+            final List<VpxPacket> allPackets = new ArrayList<>();
+            for (int i = 0; i < 5; i++) {
+                final long expectedPts = i * expectedDuration;
+                final byte[] data = new byte[frameSize];
+                try (VpxImage image = VpxImage.fromByteArray(data, width, height)) {
+                    allPackets.addAll(encoder.encode(image, expectedPts, expectedDuration, 0));
+                }
+            }
+            List<VpxPacket> flushed;
+            do {
+                flushed = encoder.flush();
+                allPackets.addAll(flushed);
+            } while (!flushed.isEmpty());
+
+            assertEquals(5, allPackets.size(), "Expected one packet per input frame");
+            for (int i = 0; i < allPackets.size(); i++) {
+                final VpxPacket pkt = allPackets.get(i);
+                assertEquals(
+                        i * expectedDuration,
+                        pkt.pts(),
+                        "Packet PTS must match the pts passed to encode()");
+                assertEquals(
+                        expectedDuration,
+                        pkt.duration(),
+                        "Packet duration must match the duration passed to encode()");
+            }
+        }
+    }
 }

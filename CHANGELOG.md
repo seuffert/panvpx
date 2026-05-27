@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `VpxPacket.pts()`: returns the presentation timestamp (PTS) echoed back by libvpx
+  from the corresponding `encode()` call, enabling callers to correlate encoded packets
+  with input frames and compute mux timing.
+- `VpxPacket.duration()`: returns the frame duration in timebase units, also echoed
+  back by libvpx from the `encode()` call.
+- `AbstractVpxEncoder.extractPackets()` now reads `pts` and `duration` from the native
+  `vpx_codec_cx_pkt_t.data.frame` struct and stores them in every `VpxPacket`.
+- Tests `testPacketPtsAndDurationAreEchoed` for both `Vp8Encoder` and `Vp9Encoder`
+  verify that PTS and duration round-trip correctly through the encode pipeline.
 - `VpxEncoderConfig.BitDepth` enum (`BITS_8`, `BITS_10`, `BITS_12`) and four new
   record components with builder setters: `bitDepth` (`g_bit_depth`),
   `inputBitDepth` (`g_input_bit_depth`), `resizeAllowed` (`rc_resize_allowed`),

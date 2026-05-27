@@ -18,9 +18,11 @@ class VpxPacketTest {
             final byte[] testData = {10, 20, 30, 40, 50};
             final MemorySegment segment = arena.allocateFrom(ValueLayout.JAVA_BYTE, testData);
 
-            final VpxPacket packet = new VpxPacket(segment, VpxPacket.VPX_FRAME_IS_KEY);
+            final VpxPacket packet = new VpxPacket(segment, VpxPacket.VPX_FRAME_IS_KEY, 42L, 1000L);
             assertEquals(5, packet.size(), "Size should be exactly 5 bytes");
             assertTrue(packet.isKeyFrame(), "Packet should be marked as keyframe");
+            assertEquals(42L, packet.pts(), "PTS should be echoed back");
+            assertEquals(1000L, packet.duration(), "Duration should be echoed back");
 
             final ByteBuffer directBuffer = packet.asDirectBuffer();
             assertTrue(directBuffer.isDirect(), "Buffer should be a direct ByteBuffer");

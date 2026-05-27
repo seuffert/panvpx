@@ -265,10 +265,12 @@ public abstract class AbstractVpxEncoder implements AutoCloseable {
                 final MemorySegment bufAddress = vpx_codec_cx_pkt.data.frame.buf(dataLayout);
                 final long bufSize = vpx_codec_cx_pkt.data.frame.sz(dataLayout);
                 final long pktFlags = vpx_codec_cx_pkt.data.frame.flags(dataLayout);
+                final long pktPts = vpx_codec_cx_pkt.data.frame.pts(dataLayout);
+                final long pktDuration = vpx_codec_cx_pkt.data.frame.duration(dataLayout);
 
                 if (bufAddress.address() != 0L && bufSize > 0) {
                     final MemorySegment dataSegment = bufAddress.reinterpret(bufSize);
-                    packets.add(new VpxPacket(dataSegment, pktFlags));
+                    packets.add(new VpxPacket(dataSegment, pktFlags, pktPts, pktDuration));
                 }
             }
         }

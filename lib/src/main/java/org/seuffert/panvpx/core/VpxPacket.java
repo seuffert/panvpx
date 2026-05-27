@@ -16,8 +16,9 @@ import java.nio.ByteBuffer;
  * <pre>{@code
  * List<VpxPacket> packets = encoder.encode(image, pts, duration, flags);
  * for (VpxPacket packet : packets) {
- *     boolean isKey = packet.isKeyFrame();
- *     byte[] data = packet.toByteArray();
+ *     long packetPts = packet.pts();   // echoed back from the encode() call
+ *     boolean isKey  = packet.isKeyFrame();
+ *     byte[]  data   = packet.toByteArray();
  *     // Write data to file or network
  * }
  * }</pre>
@@ -41,6 +42,8 @@ public class VpxPacket {
 
     private final MemorySegment dataSegment;
     private final long flags;
+    private final long pts;
+    private final long duration;
 
     /**
      * Constructs a {@link VpxPacket} wrapping native packet memory. This constructor is intended
@@ -55,10 +58,46 @@ public class VpxPacket {
      *
      * @param dataSegment The memory segment containing the encoded data.
      * @param flags The packet flags bitmask (see {@link #VPX_FRAME_IS_KEY} etc.).
+     * @param pts The presentation timestamp echoed back from the {@code encode()} call.
+     * @param duration The frame duration in timebase units echoed back from the {@code encode()}
+     *     call.
      */
-    public VpxPacket(final MemorySegment dataSegment, final long flags) {
+    public VpxPacket(
+            final MemorySegment dataSegment,
+            final long flags,
+            final long pts,
+            final long duration) {
         this.dataSegment = dataSegment;
         this.flags = flags;
+        this.pts = pts;
+        this.duration = duration;
+    }
+
+    /**
+     * Returns the presentation timestamp (PTS) for this packet.
+     *
+     * <p>This is the value that was passed as the {@code pts} argument to {@link
+     * org.seuffert.panvpx.core.AbstractVpxEncoder#encode encode()} for the corresponding input
+     * frame. It is echoed back by libvpx unmodified and can be used to correlate encoded packets
+     * with input frames and to compute timing information for muxing.
+     *
+     * @return The presentation timestamp in timebase units.
+     */
+    public long pts() {
+        return pts;
+    }
+
+    /**
+     * Returns the duration of this packet in timebase units.
+     *
+     * <p>This is the value that was passed as the {@code duration} argument to {@link
+     * org.seuffert.panvpx.core.AbstractVpxEncoder#encode encode()} for the corresponding input
+     * frame, echoed back by libvpx.
+     *
+     * @return The frame duration in timebase units.
+     */
+    public long duration() {
+        return duration;
     }
 
     /**
