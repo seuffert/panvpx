@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.5] — 2026-05-27
+
 ### Added
 - `VpxPacket.pts()`: returns the presentation timestamp (PTS) echoed back by libvpx
   from the corresponding `encode()` call, enabling callers to correlate encoded packets
@@ -182,7 +184,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   caused libvpx to skip frames still held in its lookahead buffer. Changed to `VPX_DL_BEST_QUALITY`
   (deadline = 0) so all delayed frames are drained completely on flush.
 
-[Unreleased]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.3.4...HEAD
+[Unreleased]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.3.5...HEAD
+[0.3.5]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.3.4...v0.3.5
 [0.3.4]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.3.3...v0.3.4
 [0.3.3]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.3.2...v0.3.3
 [0.3.2]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.3.1...v0.3.2
