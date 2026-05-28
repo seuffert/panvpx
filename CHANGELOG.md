@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `VpxImage.copyTo(ByteBuffer)`: convenience method to directly copy uncompressed YUV planes into a provided heap or direct `ByteBuffer` without intermediate allocations.
 - Added support for loading `libvpx` from a custom path using the `panvpx.libvpx.path` system property.
 
 ## [0.3.6] — 2026-05-28

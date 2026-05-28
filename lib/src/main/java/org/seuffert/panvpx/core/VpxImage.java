@@ -391,4 +391,86 @@ public final class VpxImage implements AutoCloseable {
 
         return data;
     }
+
+    /**
+     * Zero-allocation path: copies the native image planes into a user-provided {@link ByteBuffer}
+     * in I420 format (Y plane, then U plane, then V plane), stripping any alignment padding bytes
+     * that may be present in the native strided representation.
+     *
+     * <p>This method works with both direct and heap buffers. It requires the destination buffer to
+     * have at least {@code width * height * 3 / 2} bytes remaining. The buffer's position will be
+     * advanced by the number of bytes written.
+     *
+     * @param destinationBuffer The buffer to copy the pixel data into.
+     * @return The updated {@code destinationBuffer} for method chaining.
+     * @throws VpxException if the image format is not {@link #VPX_IMG_FMT_I420}.
+     * @throws IllegalArgumentException if the buffer does not have enough remaining capacity.
+     */
+    public ByteBuffer copyTo(final ByteBuffer destinationBuffer) {
+        if (format != VPX_IMG_FMT_I420) {
+            throw new VpxException(-1, "Only VPX_IMG_FMT_I420 is supported for copyTo()");
+        }
+
+        final int yWidth = width;
+        final int yHeight = height;
+        final int uvWidth = (width + 1) / 2;
+        final int uvHeight = (height + 1) / 2;
+
+        final int ySize = yWidth * yHeight;
+        final int uvSize = uvWidth * uvHeight;
+        final int requiredSize = ySize + uvSize * 2;
+
+        if (destinationBuffer.remaining() < requiredSize) {
+            throw new IllegalArgumentException(
+                    "Destination buffer requires at least "
+                            + requiredSize
+                            + " bytes remaining, but has "
+                            + destinationBuffer.remaining());
+        }
+
+        final MemorySegment dataSegment = MemorySegment.ofBuffer(destinationBuffer);
+        long offset = 0;
+
+        // Plane 0 (Y)
+        final int yStride = getStride(0);
+        final MemorySegment yPlane = vpx_image.planes(nativeImage, 0);
+        for (int r = 0; r < yHeight; r++) {
+            MemorySegment.copy(
+                    yPlane.reinterpret((long) yStride * yHeight),
+                    (long) r * yStride,
+                    dataSegment,
+                    offset,
+                    yWidth);
+            offset += yWidth;
+        }
+
+        // Plane 1 (U)
+        final int uStride = getStride(1);
+        final MemorySegment uPlane = vpx_image.planes(nativeImage, 1);
+        for (int r = 0; r < uvHeight; r++) {
+            MemorySegment.copy(
+                    uPlane.reinterpret((long) uStride * uvHeight),
+                    (long) r * uStride,
+                    dataSegment,
+                    offset,
+                    uvWidth);
+            offset += uvWidth;
+        }
+
+        // Plane 2 (V)
+        final int vStride = getStride(2);
+        final MemorySegment vPlane = vpx_image.planes(nativeImage, 2);
+        for (int r = 0; r < uvHeight; r++) {
+            MemorySegment.copy(
+                    vPlane.reinterpret((long) vStride * uvHeight),
+                    (long) r * vStride,
+                    dataSegment,
+                    offset,
+                    uvWidth);
+            offset += uvWidth;
+        }
+
+        destinationBuffer.position(destinationBuffer.position() + requiredSize);
+        return destinationBuffer;
+    }
 }
