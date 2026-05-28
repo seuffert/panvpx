@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.7] — 2026-05-28
+
 ### Added
 - `VpxImage.copyTo(ByteBuffer)`: convenience method to directly copy uncompressed YUV planes into a provided heap or direct `ByteBuffer` without intermediate allocations.
 - Added support for loading `libvpx` from a custom path using the `panvpx.libvpx.path` system property.
@@ -197,7 +199,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   caused libvpx to skip frames still held in its lookahead buffer. Changed to `VPX_DL_BEST_QUALITY`
   (deadline = 0) so all delayed frames are drained completely on flush.
 
-[Unreleased]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.3.6...HEAD
+[Unreleased]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.3.7...HEAD
+[0.3.7]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.3.6...v0.3.7
 [0.3.6]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.3.5...v0.3.6
 [0.3.5]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.3.4...v0.3.5
 [0.3.4]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.3.3...v0.3.4
