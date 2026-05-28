@@ -40,7 +40,7 @@
  * byte[] i420Frame = new byte[width * height * 3 / 2];
  * // ... fill i420Frame with pixel data ...
  *
- * VpxEncoderConfig cfg = VpxEncoderConfig.builder(width, height).targetBitrateKbps(512).threads(2).build();
+ * VpxEncoderConfig cfg = VpxEncoderConfig.builder(VpxEncoderConfig.Codec.VP8, width, height).targetBitrateKbps(512).threads(2).build();
  * try (Vp8Encoder encoder = new Vp8Encoder(cfg);
  *      VpxImage image = VpxImage.fromByteArray(i420Frame, width, height)) {
  *     List<VpxPacket> packets = encoder.encode(image, 0L, 1L, 0L);

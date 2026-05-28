@@ -96,7 +96,7 @@ public final class Vp9Encoder extends AbstractVpxEncoder {
      * @throws VpxException if the native encoder cannot be initialized.
      */
     public Vp9Encoder(final int width, final int height) {
-        this(VpxEncoderConfig.builder(width, height).build());
+        this(VpxEncoderConfig.builder(VpxEncoderConfig.Codec.VP9, width, height).build());
     }
 
     @Override

@@ -1,5 +1,7 @@
 package org.seuffert.panvpx.core;
 
+import java.util.Objects;
+
 /**
  * Configuration options for a VPX Encoder (VP8 or VP9).
  *
@@ -7,7 +9,7 @@ package org.seuffert.panvpx.core;
  * balancing quality, speed, and target bitrate.
  *
  * <p>For anything beyond a simple width/height or bitrate/threads setup, use the fluent {@link
- * Builder} returned by {@link #builder(int, int)}:
+ * Builder} returned by {@link #builder(Codec, int, int)}:
  *
  * <pre>{@code
  * VpxEncoderConfig config = VpxEncoderConfig.builder(640, 480)
@@ -44,6 +46,7 @@ package org.seuffert.panvpx.core;
  * #maxQuantizer}, {@link #frameDropThreshold}, {@link #keyframeMode}, etc.) match the libvpx
  * defaults for both codecs.
  *
+ * @param codec The target codec type (VP8 or VP9).
  * @param width The width of the video frame in pixels.
  * @param height The height of the video frame in pixels.
  * @param targetBitrateKbps The target bitrate in kilobits per second.
@@ -155,6 +158,7 @@ package org.seuffert.panvpx.core;
  *     specified interval even at scene cuts. Default: {@code 0}. Libvpx default: {@code 0}.
  */
 public record VpxEncoderConfig(
+        Codec codec,
         int width,
         int height,
         int targetBitrateKbps,
@@ -189,6 +193,14 @@ public record VpxEncoderConfig(
 
     /** Best-quality deadline (0 = unlimited): highest quality, slowest encoding. */
     public static final long DEADLINE_BEST_QUALITY = 0L;
+
+    /** The target codec type. */
+    public enum Codec {
+        /** VP8 Codec. */
+        VP8,
+        /** VP9 Codec. */
+        VP9
+    }
 
     /**
      * Rate-control algorithm for the encoder.
@@ -282,12 +294,13 @@ public record VpxEncoderConfig(
      * Creates a new {@link Builder} pre-populated with all defaults and requiring only the frame
      * dimensions.
      *
+     * @param codec The target codec type (VP8 or VP9).
      * @param width The frame width in pixels.
      * @param height The frame height in pixels.
      * @return a new {@link Builder} instance.
      */
-    public static Builder builder(final int width, final int height) {
-        return new Builder(width, height);
+    public static Builder builder(final Codec codec, final int width, final int height) {
+        return new Builder(codec, width, height);
     }
 
     /**
@@ -310,6 +323,7 @@ public record VpxEncoderConfig(
      */
     public static final class Builder {
 
+        private final Codec codec;
         private final int width;
         private final int height;
         private int targetBitrateKbps = 256;
@@ -341,10 +355,15 @@ public record VpxEncoderConfig(
          * with sensible defaults (256&nbsp;kbps, 1&nbsp;thread, 1/1000&nbsp;ms timebase, real-time
          * deadline, VBR rate control, auto keyframe mode, quantizer range 0–63).
          *
+         * @param codec The target codec type (VP8 or VP9).
          * @param width The frame width in pixels.
          * @param height The frame height in pixels.
          */
-        public Builder(final int width, final int height) {
+        public Builder(final Codec codec, final int width, final int height) {
+            this.codec = Objects.requireNonNull(codec, "codec must not be null");
+            if (width <= 0 || height <= 0) {
+                throw new IllegalArgumentException("Width and height must be strictly positive");
+            }
             this.width = width;
             this.height = height;
         }
@@ -357,6 +376,9 @@ public record VpxEncoderConfig(
          * @return this builder.
          */
         public Builder targetBitrateKbps(final int value) {
+            if (value < 0) {
+                throw new IllegalArgumentException("targetBitrateKbps must be non-negative");
+            }
             this.targetBitrateKbps = value;
             return this;
         }
@@ -370,6 +392,9 @@ public record VpxEncoderConfig(
          * @return this builder.
          */
         public Builder frameDropThreshold(final int value) {
+            if (value < 0 || value > 100) {
+                throw new IllegalArgumentException("frameDropThreshold must be between 0 and 100");
+            }
             this.frameDropThreshold = value;
             return this;
         }
@@ -383,6 +408,9 @@ public record VpxEncoderConfig(
          * @return this builder.
          */
         public Builder threads(final int value) {
+            if (value < 0) {
+                throw new IllegalArgumentException("threads must be non-negative");
+            }
             this.threads = value;
             return this;
         }
@@ -395,6 +423,9 @@ public record VpxEncoderConfig(
          * @return this builder.
          */
         public Builder timebaseNumerator(final int value) {
+            if (value <= 0) {
+                throw new IllegalArgumentException("timebaseNumerator must be positive");
+            }
             this.timebaseNumerator = value;
             return this;
         }
@@ -407,6 +438,9 @@ public record VpxEncoderConfig(
          * @return this builder.
          */
         public Builder timebaseDenominator(final int value) {
+            if (value <= 0) {
+                throw new IllegalArgumentException("timebaseDenominator must be positive");
+            }
             this.timebaseDenominator = value;
             return this;
         }
@@ -420,6 +454,9 @@ public record VpxEncoderConfig(
          * @return this builder.
          */
         public Builder deadline(final long value) {
+            if (value < 0) {
+                throw new IllegalArgumentException("deadline must be non-negative");
+            }
             this.deadline = value;
             return this;
         }
@@ -432,6 +469,14 @@ public record VpxEncoderConfig(
          * @return this builder.
          */
         public Builder cpuUsed(final int value) {
+            if (value < 0) {
+                throw new IllegalArgumentException("cpuUsed must be non-negative");
+            }
+            if (codec == Codec.VP8 && value > 16) {
+                throw new IllegalArgumentException("VP8 cpuUsed must be <= 16");
+            } else if (codec == Codec.VP9 && value > 8) {
+                throw new IllegalArgumentException("VP9 cpuUsed must be <= 8");
+            }
             this.cpuUsed = value;
             return this;
         }
@@ -443,6 +488,9 @@ public record VpxEncoderConfig(
          * @return this builder.
          */
         public Builder rowMt(final boolean value) {
+            if (value && codec != Codec.VP9) {
+                throw new IllegalArgumentException("rowMt is only supported by VP9");
+            }
             this.rowMt = value;
             return this;
         }
@@ -455,6 +503,13 @@ public record VpxEncoderConfig(
          * @return this builder.
          */
         public Builder tileColumns(final int value) {
+            if (value != 0 && codec != Codec.VP9) {
+                throw new IllegalArgumentException("tileColumns is only supported by VP9");
+            }
+            if (value < 0 || (value > 0 && (value & (value - 1)) != 0) || value > 64) {
+                throw new IllegalArgumentException(
+                        "tileColumns must be 0 or a power of two up to 64");
+            }
             this.tileColumns = value;
             return this;
         }
@@ -468,6 +523,12 @@ public record VpxEncoderConfig(
          * @return this builder.
          */
         public Builder tokenPartitions(final int value) {
+            if (value != 0 && codec != Codec.VP8) {
+                throw new IllegalArgumentException("tokenPartitions is only supported by VP8");
+            }
+            if (value != 0 && value != 1 && value != 2 && value != 4 && value != 8) {
+                throw new IllegalArgumentException("tokenPartitions must be 0, 1, 2, 4, or 8");
+            }
             this.tokenPartitions = value;
             return this;
         }
@@ -480,7 +541,8 @@ public record VpxEncoderConfig(
          * @return this builder.
          */
         public Builder rateControlMode(final RateControlMode value) {
-            this.rateControlMode = value;
+            this.rateControlMode =
+                    Objects.requireNonNull(value, "rateControlMode must not be null");
             return this;
         }
 
@@ -493,6 +555,9 @@ public record VpxEncoderConfig(
          * @return this builder.
          */
         public Builder maxKeyframeDistance(final int value) {
+            if (value < 0) {
+                throw new IllegalArgumentException("maxKeyframeDistance must be non-negative");
+            }
             this.maxKeyframeDistance = value;
             return this;
         }
@@ -505,7 +570,7 @@ public record VpxEncoderConfig(
          * @return this builder.
          */
         public Builder keyframeMode(final KeyframeMode value) {
-            this.keyframeMode = value;
+            this.keyframeMode = Objects.requireNonNull(value, "keyframeMode must not be null");
             return this;
         }
 
@@ -518,6 +583,9 @@ public record VpxEncoderConfig(
          * @return this builder.
          */
         public Builder profile(final int value) {
+            if (value < 0 || value > 3) {
+                throw new IllegalArgumentException("profile must be between 0 and 3");
+            }
             this.profile = value;
             return this;
         }
@@ -557,6 +625,9 @@ public record VpxEncoderConfig(
          * @return this builder.
          */
         public Builder lagInFrames(final int value) {
+            if (value < 0) {
+                throw new IllegalArgumentException("lagInFrames must be non-negative");
+            }
             this.lagInFrames = value;
             return this;
         }
@@ -570,6 +641,9 @@ public record VpxEncoderConfig(
          * @return this builder.
          */
         public Builder maxQuantizer(final int value) {
+            if (value < 0 || value > 63) {
+                throw new IllegalArgumentException("maxQuantizer must be between 0 and 63");
+            }
             this.maxQuantizer = value;
             return this;
         }
@@ -583,6 +657,9 @@ public record VpxEncoderConfig(
          * @return this builder.
          */
         public Builder minQuantizer(final int value) {
+            if (value < 0 || value > 63) {
+                throw new IllegalArgumentException("minQuantizer must be between 0 and 63");
+            }
             this.minQuantizer = value;
             return this;
         }
@@ -597,7 +674,10 @@ public record VpxEncoderConfig(
          * @return this builder.
          */
         public Builder bitDepth(final BitDepth value) {
-            this.bitDepth = value;
+            this.bitDepth = Objects.requireNonNull(value, "bitDepth must not be null");
+            if (codec == Codec.VP8 && value != BitDepth.BITS_8) {
+                throw new IllegalArgumentException("VP8 only supports BITS_8 bitDepth");
+            }
             return this;
         }
 
@@ -610,6 +690,12 @@ public record VpxEncoderConfig(
          * @return this builder.
          */
         public Builder inputBitDepth(final int value) {
+            if (codec == Codec.VP8 && value != 8) {
+                throw new IllegalArgumentException("VP8 only supports an inputBitDepth of 8");
+            }
+            if (value != 8 && value != 10 && value != 12) {
+                throw new IllegalArgumentException("inputBitDepth must be 8, 10, or 12");
+            }
             this.inputBitDepth = value;
             return this;
         }
@@ -639,6 +725,9 @@ public record VpxEncoderConfig(
          * @return this builder.
          */
         public Builder minKeyframeDistance(final int value) {
+            if (value < 0) {
+                throw new IllegalArgumentException("minKeyframeDistance must be non-negative");
+            }
             this.minKeyframeDistance = value;
             return this;
         }
@@ -694,9 +783,19 @@ public record VpxEncoderConfig(
          * Builds and returns the immutable {@link VpxEncoderConfig}.
          *
          * @return a new {@link VpxEncoderConfig} reflecting all settings applied to this builder.
+         * @throws IllegalArgumentException if invalid parameter combinations are found.
          */
         public VpxEncoderConfig build() {
+            if (minQuantizer > maxQuantizer) {
+                throw new IllegalArgumentException(
+                        "minQuantizer cannot be greater than maxQuantizer");
+            }
+            if (bitDepth != BitDepth.BITS_8 && profile < 2) {
+                throw new IllegalArgumentException(
+                        "10-bit or 12-bit encoding requires profile 2 or 3");
+            }
             return new VpxEncoderConfig(
+                    codec,
                     width,
                     height,
                     targetBitrateKbps,

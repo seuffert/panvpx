@@ -87,7 +87,10 @@ import org.seuffert.panvpx.vp8.Vp8Encoder;
 import org.seuffert.panvpx.core.VpxEncoderConfig;
 
 int width = 640, height = 480;
-VpxEncoderConfig config = new VpxEncoderConfig(width, height, /* targetBitrateKbps */ 512, /* threads */ 2);
+VpxEncoderConfig config = VpxEncoderConfig.builder(VpxEncoderConfig.Codec.VP8, width, height)
+        .targetBitrateKbps(512)
+        .threads(2)
+        .build();
 
 try (Vp8Encoder encoder = new Vp8Encoder(config)) {
     // Raw I420 frame: Y plane (width*height) + U plane (width*height/4) + V plane (width*height/4)

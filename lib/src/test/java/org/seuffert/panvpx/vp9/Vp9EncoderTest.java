@@ -19,7 +19,9 @@ class Vp9EncoderTest {
 
     @Test
     void testGetCodecName() {
-        try (Vp9Encoder encoder = new Vp9Encoder(VpxEncoderConfig.builder(320, 240).build())) {
+        try (Vp9Encoder encoder =
+                new Vp9Encoder(
+                        VpxEncoderConfig.builder(VpxEncoderConfig.Codec.VP9, 320, 240).build())) {
             assertEquals("VP9", encoder.getCodecName(), "Codec name should be VP9");
         }
     }
@@ -39,7 +41,10 @@ class Vp9EncoderTest {
         }
 
         final VpxEncoderConfig config =
-                VpxEncoderConfig.builder(width, height).targetBitrateKbps(1000).threads(2).build();
+                VpxEncoderConfig.builder(VpxEncoderConfig.Codec.VP9, width, height)
+                        .targetBitrateKbps(1000)
+                        .threads(2)
+                        .build();
 
         int packetsReceived = 0;
 
@@ -67,14 +72,11 @@ class Vp9EncoderTest {
 
     @Test
     void testInvalidConfigThrowsException() {
-        // 0 width/height is invalid and should be rejected by libvpx during init
-        final VpxEncoderConfig config = VpxEncoderConfig.builder(0, 0).build();
-        final VpxException ex =
-                assertThrows(
-                        VpxException.class,
-                        () -> new Vp9Encoder(config),
-                        "Should throw exception on invalid configuration");
-        assertEquals(8, ex.code(), "Error code should be VPX_CODEC_INVALID_PARAM (8)");
+        // -1 width/height is invalid and should be rejected by the Builder
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> VpxEncoderConfig.builder(VpxEncoderConfig.Codec.VP9, -1, -1).build(),
+                "Should throw exception on invalid configuration");
     }
 
     /**
@@ -84,7 +86,8 @@ class Vp9EncoderTest {
      */
     @Test
     void testConstructorFailureDoesNotLeakNativeMemory() {
-        final VpxEncoderConfig bad = VpxEncoderConfig.builder(0, 0).build();
+        final VpxEncoderConfig bad =
+                VpxEncoderConfig.builder(VpxEncoderConfig.Codec.VP9, 1_000_000, 1_000_000).build();
         for (int i = 0; i < 500; i++) {
             assertThrows(VpxException.class, () -> new Vp9Encoder(bad));
         }
@@ -92,7 +95,8 @@ class Vp9EncoderTest {
 
     @Test
     void testEncoderUseAfterCloseThrowsException() {
-        final VpxEncoderConfig config = VpxEncoderConfig.builder(320, 240).build();
+        final VpxEncoderConfig config =
+                VpxEncoderConfig.builder(VpxEncoderConfig.Codec.VP9, 320, 240).build();
         final Vp9Encoder encoder = new Vp9Encoder(config);
         encoder.close();
 
@@ -107,7 +111,8 @@ class Vp9EncoderTest {
 
     @Test
     void testDoubleCloseIsIdempotent() {
-        final VpxEncoderConfig config = VpxEncoderConfig.builder(320, 240).build();
+        final VpxEncoderConfig config =
+                VpxEncoderConfig.builder(VpxEncoderConfig.Codec.VP9, 320, 240).build();
         final Vp9Encoder encoder = new Vp9Encoder(config);
 
         // First close must succeed
@@ -128,7 +133,10 @@ class Vp9EncoderTest {
         final int height = 240;
         final int frameSize = width * height * 3 / 2;
 
-        try (Vp9Encoder encoder = new Vp9Encoder(VpxEncoderConfig.builder(width, height).build())) {
+        try (Vp9Encoder encoder =
+                new Vp9Encoder(
+                        VpxEncoderConfig.builder(VpxEncoderConfig.Codec.VP9, width, height)
+                                .build())) {
             int totalPackets = 0;
             for (int i = 0; i < 5; i++) {
                 final byte[] data = new byte[frameSize];
@@ -160,7 +168,10 @@ class Vp9EncoderTest {
         final int frameSize = width * height * 3 / 2;
         final byte[] data = new byte[frameSize];
 
-        try (Vp9Encoder encoder = new Vp9Encoder(VpxEncoderConfig.builder(width, height).build())) {
+        try (Vp9Encoder encoder =
+                new Vp9Encoder(
+                        VpxEncoderConfig.builder(VpxEncoderConfig.Codec.VP9, width, height)
+                                .build())) {
             final List<VpxPacket> packets;
             try (VpxImage image = VpxImage.fromByteArray(data, width, height)) {
                 packets = encoder.encode(image, 0, 1000, AbstractVpxEncoder.VPX_EFLAG_FORCE_KF);
@@ -185,7 +196,10 @@ class Vp9EncoderTest {
         final int height = 240;
         final int frameSize = width * height * 3 / 2;
 
-        try (Vp9Encoder encoder = new Vp9Encoder(VpxEncoderConfig.builder(width, height).build())) {
+        try (Vp9Encoder encoder =
+                new Vp9Encoder(
+                        VpxEncoderConfig.builder(VpxEncoderConfig.Codec.VP9, width, height)
+                                .build())) {
             final List<byte[]> copies = new ArrayList<>();
             for (int i = 0; i < 3; i++) {
                 final byte[] frameData = new byte[frameSize];
@@ -220,7 +234,10 @@ class Vp9EncoderTest {
         final int frameSize = width * height * 3 / 2;
         final long expectedDuration = 1000L;
 
-        try (Vp9Encoder encoder = new Vp9Encoder(VpxEncoderConfig.builder(width, height).build())) {
+        try (Vp9Encoder encoder =
+                new Vp9Encoder(
+                        VpxEncoderConfig.builder(VpxEncoderConfig.Codec.VP9, width, height)
+                                .build())) {
             final List<VpxPacket> allPackets = new ArrayList<>();
             for (int i = 0; i < 5; i++) {
                 final long expectedPts = i * expectedDuration;

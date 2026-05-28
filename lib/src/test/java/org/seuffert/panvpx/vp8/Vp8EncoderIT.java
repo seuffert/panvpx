@@ -32,7 +32,10 @@ class Vp8EncoderIT {
         final byte[] frameBuffer = new byte[frameSize];
 
         final VpxEncoderConfig config =
-                VpxEncoderConfig.builder(width, height).targetBitrateKbps(500).threads(1).build();
+                VpxEncoderConfig.builder(VpxEncoderConfig.Codec.VP8, width, height)
+                        .targetBitrateKbps(500)
+                        .threads(1)
+                        .build();
 
         int frameCount = 0;
         long totalEncodedBytes = 0;
@@ -85,7 +88,10 @@ class Vp8EncoderIT {
         final byte[] frameBuffer = new byte[frameSize];
 
         final VpxEncoderConfig config =
-                VpxEncoderConfig.builder(width, height).targetBitrateKbps(500).threads(1).build();
+                VpxEncoderConfig.builder(VpxEncoderConfig.Codec.VP8, width, height)
+                        .targetBitrateKbps(500)
+                        .threads(1)
+                        .build();
 
         try (InputStream is = Vp8EncoderIT.class.getResourceAsStream(TEST_VIDEO_RESOURCE);
                 Vp8Encoder encoder = new Vp8Encoder(config)) {
@@ -131,13 +137,13 @@ class Vp8EncoderIT {
 
         final long sizeLowBitrate =
                 encodeEntireFile(
-                        VpxEncoderConfig.builder(width, height)
+                        VpxEncoderConfig.builder(VpxEncoderConfig.Codec.VP8, width, height)
                                 .targetBitrateKbps(100)
                                 .threads(1)
                                 .build());
         final long sizeHighBitrate =
                 encodeEntireFile(
-                        VpxEncoderConfig.builder(width, height)
+                        VpxEncoderConfig.builder(VpxEncoderConfig.Codec.VP8, width, height)
                                 .targetBitrateKbps(1000)
                                 .threads(1)
                                 .build());
@@ -162,7 +168,7 @@ class Vp8EncoderIT {
         try (InputStream is = Vp8EncoderIT.class.getResourceAsStream(TEST_VIDEO_RESOURCE);
                 Vp8Encoder encoder =
                         new Vp8Encoder(
-                                VpxEncoderConfig.builder(width, height)
+                                VpxEncoderConfig.builder(VpxEncoderConfig.Codec.VP8, width, height)
                                         .targetBitrateKbps(500)
                                         .threads(1)
                                         .build())) {
@@ -189,7 +195,7 @@ class Vp8EncoderIT {
         try (InputStream is = Vp8EncoderIT.class.getResourceAsStream(TEST_VIDEO_RESOURCE);
                 Vp8Encoder encoder =
                         new Vp8Encoder(
-                                VpxEncoderConfig.builder(width, height)
+                                VpxEncoderConfig.builder(VpxEncoderConfig.Codec.VP8, width, height)
                                         .targetBitrateKbps(500)
                                         .threads(1)
                                         .build())) {
@@ -235,7 +241,7 @@ class Vp8EncoderIT {
         final byte[] outputViaByteArray;
         try (Vp8Encoder encoder =
                         new Vp8Encoder(
-                                VpxEncoderConfig.builder(width, height)
+                                VpxEncoderConfig.builder(VpxEncoderConfig.Codec.VP8, width, height)
                                         .targetBitrateKbps(500)
                                         .threads(1)
                                         .build());
@@ -251,7 +257,8 @@ class Vp8EncoderIT {
             MemorySegment.copy(frameBuffer, 0, segment, ValueLayout.JAVA_BYTE, 0, frameSize);
             try (Vp8Encoder encoder =
                             new Vp8Encoder(
-                                    VpxEncoderConfig.builder(width, height)
+                                    VpxEncoderConfig.builder(
+                                                    VpxEncoderConfig.Codec.VP8, width, height)
                                             .targetBitrateKbps(500)
                                             .threads(1)
                                             .build());
@@ -277,7 +284,7 @@ class Vp8EncoderIT {
         final long expectedMaxBytes = 500L * 3 * 1_000 / 8 * 4; // ~750,000
         final long actualBytes =
                 encodeEntireFile(
-                        VpxEncoderConfig.builder(width, height)
+                        VpxEncoderConfig.builder(VpxEncoderConfig.Codec.VP8, width, height)
                                 .targetBitrateKbps(500)
                                 .threads(1)
                                 .build());
@@ -300,7 +307,7 @@ class Vp8EncoderIT {
         // Encoder created on the main (test) thread — Arena.ofShared() allows cross-thread access
         final Vp8Encoder encoder =
                 new Vp8Encoder(
-                        VpxEncoderConfig.builder(width, height)
+                        VpxEncoderConfig.builder(VpxEncoderConfig.Codec.VP8, width, height)
                                 .targetBitrateKbps(500)
                                 .threads(1)
                                 .build());

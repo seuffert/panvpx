@@ -23,7 +23,7 @@
  * // ... fill i420Frame with pixel data ...
  *
  * VpxEncoderConfig config =
- *         VpxEncoderConfig.builder(width, height)
+ *         VpxEncoderConfig.builder(VpxEncoderConfig.Codec.VP9, width, height)
  *                 .targetBitrateKbps(1500)
  *                 .threads(4)
  *                 .deadline(VpxEncoderConfig.DEADLINE_GOOD_QUALITY)

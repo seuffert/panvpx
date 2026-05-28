@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- `VpxEncoderConfig` now tracks its target codec natively via a nested `Codec` enum (`VP8` or `VP9`).
+- `VpxEncoderConfig.builder()` now requires the target `Codec` as its first argument to support strong, codec-aware parameter validation.
+- All `VpxEncoderConfig.Builder` setters now validate input values (e.g. strict bounds, non-negative checks) and immediately throw `IllegalArgumentException` on invalid values.
+- Setters for codec-specific features (e.g. `tileColumns`, `rowMt`, `tokenPartitions`, `bitDepth`) now throw `IllegalArgumentException` if called on a builder configured for the wrong codec.
+- The `build()` method now asserts cross-field constraints (e.g. `minQuantizer <= maxQuantizer` and 10/12-bit encoding prerequisites).
+
 ## [0.3.5] — 2026-05-27
 
 ### Added

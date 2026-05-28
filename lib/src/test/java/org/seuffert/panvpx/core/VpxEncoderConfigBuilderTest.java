@@ -16,7 +16,8 @@ class VpxEncoderConfigBuilderTest {
 
     @Test
     void testBuilderDefaults() {
-        final VpxEncoderConfig config = VpxEncoderConfig.builder(320, 240).build();
+        final VpxEncoderConfig config =
+                VpxEncoderConfig.builder(VpxEncoderConfig.Codec.VP8, 320, 240).build();
         assertEquals(320, config.width());
         assertEquals(240, config.height());
         assertEquals(256, config.targetBitrateKbps());
@@ -43,9 +44,53 @@ class VpxEncoderConfigBuilderTest {
     // --- All builder setters round-trip through record accessors ---
 
     @Test
-    void testBuilderAllFieldsRoundTrip() {
+    void testBuilderAllFieldsRoundTripVp8() {
         final VpxEncoderConfig config =
-                VpxEncoderConfig.builder(640, 480)
+                VpxEncoderConfig.builder(VpxEncoderConfig.Codec.VP8, 640, 480)
+                        .targetBitrateKbps(2000)
+                        .frameDropThreshold(10)
+                        .threads(4)
+                        .timebaseNumerator(1)
+                        .timebaseDenominator(90_000)
+                        .deadline(VpxEncoderConfig.DEADLINE_GOOD_QUALITY)
+                        .cpuUsed(4)
+                        .tokenPartitions(4)
+                        .rateControlMode(VpxEncoderConfig.RateControlMode.CBR)
+                        .maxKeyframeDistance(120)
+                        .keyframeMode(VpxEncoderConfig.KeyframeMode.AUTO)
+                        .profile(0)
+                        .usage(0)
+                        .errorResilient(true)
+                        .lagInFrames(0)
+                        .maxQuantizer(54)
+                        .minQuantizer(4)
+                        .build();
+
+        assertEquals(640, config.width());
+        assertEquals(480, config.height());
+        assertEquals(2000, config.targetBitrateKbps());
+        assertEquals(10, config.frameDropThreshold());
+        assertEquals(4, config.threads());
+        assertEquals(1, config.timebaseNumerator());
+        assertEquals(90_000, config.timebaseDenominator());
+        assertEquals(VpxEncoderConfig.DEADLINE_GOOD_QUALITY, config.deadline());
+        assertEquals(4, config.cpuUsed());
+        assertEquals(4, config.tokenPartitions());
+        assertEquals(VpxEncoderConfig.RateControlMode.CBR, config.rateControlMode());
+        assertEquals(120, config.maxKeyframeDistance());
+        assertEquals(VpxEncoderConfig.KeyframeMode.AUTO, config.keyframeMode());
+        assertEquals(0, config.profile());
+        assertEquals(0, config.usage());
+        assertTrue(config.errorResilient());
+        assertEquals(0, config.lagInFrames());
+        assertEquals(54, config.maxQuantizer());
+        assertEquals(4, config.minQuantizer());
+    }
+
+    @Test
+    void testBuilderAllFieldsRoundTripVp9() {
+        final VpxEncoderConfig config =
+                VpxEncoderConfig.builder(VpxEncoderConfig.Codec.VP9, 640, 480)
                         .targetBitrateKbps(2000)
                         .frameDropThreshold(10)
                         .threads(4)
@@ -55,7 +100,6 @@ class VpxEncoderConfigBuilderTest {
                         .cpuUsed(4)
                         .rowMt(true)
                         .tileColumns(2)
-                        .tokenPartitions(4)
                         .rateControlMode(VpxEncoderConfig.RateControlMode.CBR)
                         .maxKeyframeDistance(120)
                         .keyframeMode(VpxEncoderConfig.KeyframeMode.AUTO)
@@ -78,7 +122,6 @@ class VpxEncoderConfigBuilderTest {
         assertEquals(4, config.cpuUsed());
         assertTrue(config.rowMt());
         assertEquals(2, config.tileColumns());
-        assertEquals(4, config.tokenPartitions());
         assertEquals(VpxEncoderConfig.RateControlMode.CBR, config.rateControlMode());
         assertEquals(120, config.maxKeyframeDistance());
         assertEquals(VpxEncoderConfig.KeyframeMode.AUTO, config.keyframeMode());
@@ -100,7 +143,7 @@ class VpxEncoderConfigBuilderTest {
         final byte[] frame = new byte[frameSize];
 
         final VpxEncoderConfig config =
-                VpxEncoderConfig.builder(width, height)
+                VpxEncoderConfig.builder(VpxEncoderConfig.Codec.VP8, width, height)
                         .targetBitrateKbps(500)
                         .rateControlMode(VpxEncoderConfig.RateControlMode.CBR)
                         .threads(1)
@@ -133,7 +176,7 @@ class VpxEncoderConfigBuilderTest {
         final int totalFrames = 12; // spans two full keyframe intervals
 
         final VpxEncoderConfig config =
-                VpxEncoderConfig.builder(width, height)
+                VpxEncoderConfig.builder(VpxEncoderConfig.Codec.VP8, width, height)
                         .targetBitrateKbps(500)
                         .maxKeyframeDistance(kfDistance)
                         .build();
@@ -174,7 +217,9 @@ class VpxEncoderConfigBuilderTest {
         final byte[] frame = new byte[width * height * 3 / 2];
 
         final VpxEncoderConfig config =
-                VpxEncoderConfig.builder(width, height).errorResilient(true).build();
+                VpxEncoderConfig.builder(VpxEncoderConfig.Codec.VP8, width, height)
+                        .errorResilient(true)
+                        .build();
 
         try (Vp8Encoder encoder = new Vp8Encoder(config);
                 VpxImage image = VpxImage.fromByteArray(frame, width, height)) {
@@ -193,7 +238,9 @@ class VpxEncoderConfigBuilderTest {
 
         // Replicate the legacy JNI quantiser cap (rc_max_quantizer = 54)
         final VpxEncoderConfig config =
-                VpxEncoderConfig.builder(width, height).maxQuantizer(54).build();
+                VpxEncoderConfig.builder(VpxEncoderConfig.Codec.VP8, width, height)
+                        .maxQuantizer(54)
+                        .build();
 
         try (Vp8Encoder encoder = new Vp8Encoder(config);
                 VpxImage image = VpxImage.fromByteArray(frame, width, height)) {

@@ -180,7 +180,12 @@ public final class BenchmarkRunner {
 
     private static AutoCloseable createEncoder(final String codec, final BenchmarkConfig config) {
         final VpxEncoderConfig encCfg =
-                VpxEncoderConfig.builder(config.width(), config.height())
+                VpxEncoderConfig.builder(
+                                "VP8".equals(codec)
+                                        ? VpxEncoderConfig.Codec.VP8
+                                        : VpxEncoderConfig.Codec.VP9,
+                                config.width(),
+                                config.height())
                         .targetBitrateKbps(config.bitrateKbps())
                         .threads(config.threads())
                         .deadline(config.preset().deadline())

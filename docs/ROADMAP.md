@@ -44,6 +44,11 @@ Iterative implementation of a Java/JDK25 wrapper for libvpx using Project Panama
    - `VpxEncoderConfig` extended: `threads`, `preset`, `cpuUsed`, `rowMt`, `tileColumns`, `tokenPartitions`
    - Pipeline mode removed (encoder + decoder sequential, always dominated by encoder)
 
+7. **Phase 7: Codec-Aware Configuration & Validation** ✅ Completed
+   - Added `Codec` enum inside `VpxEncoderConfig` (`VP8` / `VP9`).
+   - Builder requires target codec type on initialization to apply codec-specific validation and restrict cross-codec parameters (e.g., `tileColumns` for VP8).
+   - Added strict validation on configuration properties like bounds, required power-of-two sizes, etc., directly in builder setters to fail fast on initialization.
+
 **Decisions**
 - Language: Pure Java with JDK 25 (refactored from Kotlin).
 - Architecture: Unified library for VP8/VP9, Encoder/Decoder inside `lib` module.
