@@ -33,6 +33,52 @@ Developed by [Oliver Seuffert](https://gitlab.com/org.seuffert).
   - Debian/Ubuntu 26.04 (Resolute) or later: `sudo apt install libvpx-dev`
   - macOS (Homebrew): `brew install libvpx` (verify with `pkg-config --modversion vpx`)
 
+### Custom library path
+
+panvpx loads `libvpx` via the Panama FFM `SymbolLookup.libraryLookup()` call, which delegates directly to the OS dynamic linker (`dlopen` on Linux/macOS). The JVM flag `-Djava.library.path` has no effect here — it only applies to `System.loadLibrary()`.
+
+**Option 1 — JVM system property (recommended)**
+
+Set `panvpx.libvpx.path` to the full path of the shared library file. This is the cleanest, purely Java approach and works on all platforms:
+
+```
+java -Dpanvpx.libvpx.path=/opt/myapp/lib/libvpx.so \
+     --enable-native-access=org.seuffert.panvpx -jar myapp.jar
+```
+
+```
+# macOS
+java -Dpanvpx.libvpx.path=/opt/myapp/lib/libvpx.dylib \
+     --enable-native-access=org.seuffert.panvpx -jar myapp.jar
+```
+
+When this property is set, the OS-level library search is bypassed entirely — the library at the given path is loaded directly, even if a different `libvpx` is installed system-wide.
+
+**Option 2 — OS-level mechanisms**
+
+Use these when you cannot control the JVM command line (e.g. inside an application server) or when you need the override to apply process-wide.
+
+**Linux**
+
+```
+# Prepend the directory that contains your custom libvpx.so
+LD_LIBRARY_PATH=/opt/myapp/lib:$LD_LIBRARY_PATH java \
+    --enable-native-access=org.seuffert.panvpx -jar myapp.jar
+
+# Or preload the exact file — takes precedence even over the linker cache
+LD_PRELOAD=/opt/myapp/lib/libvpx.so java \
+    --enable-native-access=org.seuffert.panvpx -jar myapp.jar
+```
+
+**macOS**
+
+```
+DYLD_LIBRARY_PATH=/opt/myapp/lib:$DYLD_LIBRARY_PATH java \
+    --enable-native-access=org.seuffert.panvpx -jar myapp.jar
+```
+
+> **Note (macOS):** `DYLD_LIBRARY_PATH` is silently ignored for processes protected by System Integrity Protection (SIP). If that is a concern, use the `panvpx.libvpx.path` property instead.
+
 ## Installation
 
 ### Maven

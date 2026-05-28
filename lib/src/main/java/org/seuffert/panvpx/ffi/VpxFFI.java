@@ -5,6 +5,8 @@ package org.seuffert.panvpx.ffi;
 import java.lang.invoke.*;
 import java.lang.foreign.*;
 import java.nio.ByteOrder;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
@@ -20,9 +22,47 @@ public class VpxFFI extends VpxFFI$shared {
 
     static final Arena LIBRARY_ARENA = Arena.ofAuto();
 
-    static final SymbolLookup SYMBOL_LOOKUP = SymbolLookup.libraryLookup(System.mapLibraryName("vpx"), LIBRARY_ARENA)
-            .or(SymbolLookup.loaderLookup())
-            .or(Linker.nativeLinker().defaultLookup());
+    // NOTE: hand-edited after jextract generation — re-apply after regeneration.
+    private static SymbolLookup buildSymbolLookup() {
+        final String customPath = System.getProperty("panvpx.libvpx.path");
+        final SymbolLookup primary;
+        if (customPath != null && !customPath.isEmpty()) {
+            final Path libPath = Path.of(customPath);
+            if (!Files.exists(libPath)) {
+                throw new IllegalStateException(
+                        "panvpx: libvpx not found at panvpx.libvpx.path=" + libPath
+                                + ". Verify the path points to a valid libvpx shared library.");
+            }
+            try {
+                primary = SymbolLookup.libraryLookup(libPath, LIBRARY_ARENA);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalStateException(
+                        "panvpx: failed to load libvpx from panvpx.libvpx.path=" + libPath
+                                + ". The file exists but could not be loaded — verify it is a shared"
+                                + " library built for this platform/architecture.",
+                        e);
+            }
+        } else {
+            final String libName = System.mapLibraryName("vpx");
+            try {
+                primary = SymbolLookup.libraryLookup(libName, LIBRARY_ARENA);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalStateException(
+                        "panvpx: failed to load libvpx (" + libName + "). "
+                                + "Ensure the library is installed — on Debian/Ubuntu: "
+                                + "'sudo apt install libvpx-dev', on macOS: 'brew install libvpx'. "
+                                + "If you need a specific build, set "
+                                + "-Dpanvpx.libvpx.path=/path/to/" + libName + " on the JVM. "
+                                + "OS error: " + e.getMessage(),
+                        e);
+            }
+        }
+        return primary
+                .or(SymbolLookup.loaderLookup())
+                .or(Linker.nativeLinker().defaultLookup());
+    }
+
+    static final SymbolLookup SYMBOL_LOOKUP = buildSymbolLookup();
 
     private static final int VPX_IMG_FMT_PLANAR = (int)256L;
     /**

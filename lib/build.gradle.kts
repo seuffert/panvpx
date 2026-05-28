@@ -94,6 +94,11 @@ tasks.withType<Javadoc> {
 tasks.test {
     useJUnitPlatform()
     jvmArgs("--enable-native-access=ALL-UNNAMED")
+
+    // Forward the custom library path property to the test JVM
+    if (System.getProperty("panvpx.libvpx.path") != null) {
+        systemProperty("panvpx.libvpx.path", System.getProperty("panvpx.libvpx.path"))
+    }
 }
 
 // ---------------------------------------------------------------------------
