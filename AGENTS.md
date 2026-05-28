@@ -91,6 +91,9 @@ before proceeding. Do not wait to be asked. Specifically, review:
 If any of these need updating, apply all changes and commit them in a single follow-up commit
 with a short, compact one-liner message — e.g., `docs: update ROADMAP to reflect Phase 3 completion`.
 
+### 8. File Editing & Tooling
+- **Direct file modification**: Whenever possible, use native file-editing capabilities to update and modify files directly (including source code, Markdown, and configuration files). Avoid delegating file modifications to shell scripts or command-line text processing tools (like `sed` or `awk`) unless absolutely necessary. Direct edits ensure cleaner, more robust modifications and reduce the risk of malformed outputs.
+
 ## Versioning / Release process
 
 To bump the project version (e.g. to `vX.Y.Z`):
