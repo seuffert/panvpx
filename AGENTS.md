@@ -47,6 +47,34 @@
 - **Do not add new Gradle dependencies** without explicit user approval. Check `gradle/libs.versions.toml` first to see what is already available.
 - **Before Committing**: Run `./gradlew spotlessApply` first to auto-format, then run `./gradlew build --rerun-tasks` to ensure a clean build and no hidden static analysis failures.
 
+### Dependency updates
+
+The [`nl.littlerobots.version-catalog-update`](https://github.com/littlerobots/version-catalog-update-plugin)
+plugin keeps `gradle/libs.versions.toml` current. It is configured at the root with
+`versionSelector(VersionSelectors.STABLE)`, so release candidates, alpha/beta builds and
+snapshots are never selected automatically.
+
+> **Configuration cache:** this project sets `org.gradle.configuration-cache=true`, but the
+> update tasks access `Task.project` at execution time, which is incompatible with the cache.
+> Always run them with `--no-configuration-cache` to avoid the warning/failure.
+
+```fish
+# Report available stable updates without modifying the file (fails if any exist — good for CI)
+./gradlew versionCatalogUpdate --check --no-configuration-cache
+
+# Stage proposed updates to gradle/libs.versions.updates.toml for review
+./gradlew versionCatalogUpdate --interactive --no-configuration-cache
+# ...then apply the reviewed staged changes
+./gradlew versionCatalogApplyUpdates --no-configuration-cache
+
+# Or update the catalog in place directly
+./gradlew versionCatalogUpdate --no-configuration-cache
+```
+
+After updating, always run `./gradlew build --rerun-tasks` to confirm the build is still green
+before committing. Pin or keep entries with `# @pin` / `# @keep` TOML comments when an upgrade
+must be held back (e.g. for ABI/JDK compatibility reasons).
+
 ### Static analysis
 
 Five Gradle plugins enforce quality on every build. Their configuration lives under `config/`:

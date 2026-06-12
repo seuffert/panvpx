@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Build tooling: integrated the `nl.littlerobots.version-catalog-update` Gradle plugin to keep
+  `gradle/libs.versions.toml` up to date. Configured with `versionSelector(VersionSelectors.STABLE)`
+  so release candidates, alpha/beta builds and snapshots are never selected automatically. Run
+  `./gradlew versionCatalogUpdate --no-configuration-cache` to update (see `AGENTS.md` for details).
+
 ## [0.3.7] — 2026-05-28
 
 ### Added

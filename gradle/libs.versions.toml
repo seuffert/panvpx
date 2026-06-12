@@ -9,6 +9,7 @@ spotbugs-tool = "4.9.8"
 spotbugs-plugin = "6.4.8"
 spotless = "8.5.1"
 vanniktech-publish = "0.36.0"
+version-catalog-update = "1.1.0"
 
 [libraries]
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
@@ -22,3 +23,4 @@ errorprone = { id = "net.ltgt.errorprone", version.ref = "errorprone-plugin" }
 spotbugs = { id = "com.github.spotbugs", version.ref = "spotbugs-plugin" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 vanniktech-publish = { id = "com.vanniktech.maven.publish", version.ref = "vanniktech-publish" }
+version-catalog-update = { id = "nl.littlerobots.version-catalog-update", version.ref = "version-catalog-update" }

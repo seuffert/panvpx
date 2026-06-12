@@ -273,6 +273,17 @@ rm -rf lib/src/main/java/org/seuffert/panvpx/ffi/*; and \
   /usr/include/vpx/vp8cx.h /usr/include/vpx/vp8dx.h /usr/include/vpx/vpx_decoder.h
 ```
 
+To check for (stable-only) dependency updates in `gradle/libs.versions.toml`, use the
+[version-catalog-update](https://github.com/littlerobots/version-catalog-update-plugin) plugin
+(release candidates and snapshots are never selected automatically):
+
+```fish
+# Report available updates without modifying the file
+./gradlew versionCatalogUpdate --check --no-configuration-cache
+# Update the catalog in place
+./gradlew versionCatalogUpdate --no-configuration-cache
+```
+
 ## Contributing
 
 Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a merge request.
