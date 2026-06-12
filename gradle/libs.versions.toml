@@ -1,13 +1,16 @@
 [versions]
 junit = "6.1.0"
+# @keep — consumed via libs.versions.checkstyle.get() in lib/build.gradle.kts, not as a catalog ref
 checkstyle = "13.4.2"
-errorprone = "2.49.0"
-errorprone-plugin = "4.2.0"
-nullaway = "0.13.4"
+errorprone = "2.50.0"
+errorprone-plugin = "5.1.0"
+nullaway = "0.13.6"
+# @keep — consumed via libs.versions.pmd.get() in lib/build.gradle.kts, not as a catalog ref
 pmd = "7.24.0"
+# @keep — consumed via libs.versions.spotbugs.tool.get() in lib/build.gradle.kts, not as a catalog ref
 spotbugs-tool = "4.9.8"
-spotbugs-plugin = "6.4.8"
-spotless = "8.5.1"
+spotbugs-plugin = "6.5.6"
+spotless = "8.6.0"
 vanniktech-publish = "0.36.0"
 version-catalog-update = "1.1.0"
 

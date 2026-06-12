@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   so release candidates, alpha/beta builds and snapshots are never selected automatically. Run
   `./gradlew versionCatalogUpdate --no-configuration-cache` to update (see `AGENTS.md` for details).
 
+### Changed
+- Build tooling: bumped static-analysis and test dependencies — Error Prone `2.49.0` → `2.50.0`,
+  the Error Prone Gradle plugin `4.2.0` → `5.1.0`, NullAway `0.13.4` → `0.13.6`, the SpotBugs
+  Gradle plugin `6.4.8` → `6.5.6`, and Spotless `8.5.1` → `8.6.0`. The `checkstyle`, `pmd` and
+  `spotbugs-tool` versions now carry `# @keep` annotations so the catalog updater preserves them.
+
 ## [0.3.7] — 2026-05-28
 
 ### Added

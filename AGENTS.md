@@ -75,6 +75,13 @@ After updating, always run `./gradlew build --rerun-tasks` to confirm the build 
 before committing. Pin or keep entries with `# @pin` / `# @keep` TOML comments when an upgrade
 must be held back (e.g. for ABI/JDK compatibility reasons).
 
+> **`@keep` is mandatory for versions consumed via `libs.versions.X.get()`:** the plugin only
+> sees versions referenced through `version.ref` in the `[libraries]`/`[plugins]` tables. The
+> `checkstyle`, `pmd` and `spotbugs-tool` versions are read at runtime by
+> `lib/build.gradle.kts` (`toolVersion = libs.versions.<x>.get()`), so the plugin considers them
+> unused and **strips them on update** unless they carry a `# @keep` annotation on the line
+> directly above the entry. Never remove those annotations.
+
 ### Static analysis
 
 Five Gradle plugins enforce quality on every build. Their configuration lives under `config/`:
