@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `VpxEncoderConfig`: exposed `rcUndershootPct`/`rcOvershootPct` (`rc_undershoot_pct`/
+  `rc_overshoot_pct`) rate-control adaptation settings via the builder, applied to the native
+  `vpx_codec_enc_cfg_t` in `AbstractVpxEncoder`.
 - Build tooling: integrated the `nl.littlerobots.version-catalog-update` Gradle plugin to keep
   `gradle/libs.versions.toml` up to date. Configured with `versionSelector(VersionSelectors.STABLE)`
   so release candidates, alpha/beta builds and snapshots are never selected automatically. Run

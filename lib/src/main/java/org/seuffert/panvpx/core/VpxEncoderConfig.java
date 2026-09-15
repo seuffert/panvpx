@@ -40,6 +40,10 @@ import java.util.Objects;
  *       default {@code 128} for both codecs.
  *   <li>{@link #lagInFrames} — builder default {@code 0}; VP8 native default {@code 0}, VP9 native
  *       default {@code 25}.
+ *   <li>{@link #rcUndershootPct} — builder default {@code 100}; VP8 native default {@code 100}, VP9
+ *       native default {@code 25}.
+ *   <li>{@link #rcOvershootPct} — builder default {@code 100}; VP8 native default {@code 100}, VP9
+ *       native default {@code 25}.
  * </ul>
  *
  * <p>All other exposed fields ({@link #targetBitrateKbps}, {@link #rateControlMode}, {@link
@@ -156,6 +160,18 @@ import java.util.Objects;
  *     ({@code kf_min_dist}). {@code 0} imposes no minimum (the codec default). Setting this to a
  *     positive value prevents the encoder from inserting a key frame more frequently than the
  *     specified interval even at scene cuts. Default: {@code 0}. Libvpx default: {@code 0}.
+ * @param rcUndershootPct Rate-control undershoot percentage ({@code rc_undershoot_pct}). For VP8,
+ *     the maximum amount of bits (as a percentage of the target bitrate) that may be subtracted
+ *     from the target to compensate for prior overshoot. For VP9, the undershoot threshold
+ *     (relative to the target) beyond which more aggressive corrective measures are taken. Valid
+ *     range: {@code 0}&ndash;{@code 100}. Default: {@code 100}. Libvpx default: {@code 100} (VP8),
+ *     {@code 25} (VP9).
+ * @param rcOvershootPct Rate-control overshoot percentage ({@code rc_overshoot_pct}). For VP8, the
+ *     maximum amount of bits (as a percentage of the target bitrate) that may be added to the
+ *     target to compensate for prior undershoot. For VP9, the overshoot threshold (relative to the
+ *     target) beyond which more aggressive corrective measures are taken. Valid range: {@code
+ *     0}&ndash;{@code 100}. Default: {@code 100}. Libvpx default: {@code 100} (VP8), {@code 25}
+ *     (VP9).
  */
 public record VpxEncoderConfig(
         Codec codec,
@@ -183,7 +199,9 @@ public record VpxEncoderConfig(
         BitDepth bitDepth,
         int inputBitDepth,
         boolean resizeAllowed,
-        int minKeyframeDistance) {
+        int minKeyframeDistance,
+        int rcUndershootPct,
+        int rcOvershootPct) {
 
     /** Real-time deadline (1 µs): fastest encoding, lowest quality. */
     public static final long DEADLINE_REALTIME = 1L;
@@ -349,6 +367,8 @@ public record VpxEncoderConfig(
         private int inputBitDepth = 8;
         private boolean resizeAllowed;
         private int minKeyframeDistance;
+        private int rcUndershootPct = 100;
+        private int rcOvershootPct = 100;
 
         /**
          * Creates a builder with the required frame dimensions. All other fields are pre-populated
@@ -732,6 +752,40 @@ public record VpxEncoderConfig(
             return this;
         }
 
+        /**
+         * Sets the rate-control undershoot percentage ({@code rc_undershoot_pct}). Controls the
+         * maximum adaptation speed (VP8) or the undershoot threshold (VP9) that triggers corrective
+         * measures, expressed as a percentage of the target bitrate. Default: {@code 100}. Libvpx
+         * default: {@code 100} (VP8), {@code 25} (VP9).
+         *
+         * @param value undershoot percentage, {@code 0}-{@code 100}.
+         * @return this builder.
+         */
+        public Builder rcUndershootPct(final int value) {
+            if (value < 0 || value > 100) {
+                throw new IllegalArgumentException("rcUndershootPct must be between 0 and 100");
+            }
+            this.rcUndershootPct = value;
+            return this;
+        }
+
+        /**
+         * Sets the rate-control overshoot percentage ({@code rc_overshoot_pct}). Controls the
+         * maximum adaptation speed (VP8) or the overshoot threshold (VP9) that triggers corrective
+         * measures, expressed as a percentage of the target bitrate. Default: {@code 100}. Libvpx
+         * default: {@code 100} (VP8), {@code 25} (VP9).
+         *
+         * @param value overshoot percentage, {@code 0}-{@code 100}.
+         * @return this builder.
+         */
+        public Builder rcOvershootPct(final int value) {
+            if (value < 0 || value > 100) {
+                throw new IllegalArgumentException("rcOvershootPct must be between 0 and 100");
+            }
+            this.rcOvershootPct = value;
+            return this;
+        }
+
         // =====================================================================
         // UNEXPOSED libvpx vpx_codec_enc_cfg_t FIELDS
         // Sources: vp8_cx_iface.c and vp9_cx_iface.c
@@ -758,8 +812,6 @@ public record VpxEncoderConfig(
         // rc_resize_up_thresh      30
         //
         // ---- Rate-control buffer model ----
-        // rc_undershoot_pct        100  (VP9: 25)
-        // rc_overshoot_pct         100  (VP9: 25)
         // rc_max_buffer_size       6000  (ms)
         // rc_buffer_initial_size   4000  (ms)
         // rc_buffer_optimal_size   5000  (ms)
@@ -820,7 +872,9 @@ public record VpxEncoderConfig(
                     bitDepth,
                     inputBitDepth,
                     resizeAllowed,
-                    minKeyframeDistance);
+                    minKeyframeDistance,
+                    rcUndershootPct,
+                    rcOvershootPct);
         }
     }
 }
