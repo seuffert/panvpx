@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `VpxEncoderConfig`: exposed `rcBufSz`/`rcBufInitialSz`/`rcBufOptimalSz` (`rc_buf_sz`/
+  `rc_buf_initial_sz`/`rc_buf_optimal_sz`) decoder buffer model settings via the builder, applied
+  to the native `vpx_codec_enc_cfg_t` in `AbstractVpxEncoder`.
 - `VpxEncoderConfig`: exposed `rcUndershootPct`/`rcOvershootPct` (`rc_undershoot_pct`/
   `rc_overshoot_pct`) rate-control adaptation settings via the builder, applied to the native
   `vpx_codec_enc_cfg_t` in `AbstractVpxEncoder`.

@@ -172,6 +172,15 @@ import java.util.Objects;
  *     target) beyond which more aggressive corrective measures are taken. Valid range: {@code
  *     0}&ndash;{@code 100}. Default: {@code 100}. Libvpx default: {@code 100} (VP8), {@code 25}
  *     (VP9).
+ * @param rcBufSz Decoder buffer size ({@code rc_buf_sz}), in milliseconds of encoded data at the
+ *     target bitrate ({@link #targetBitrateKbps}). Indicates how much data the decoding application
+ *     is expected to buffer. Default: {@code 6000}. Libvpx default: {@code 6000}.
+ * @param rcBufInitialSz Decoder buffer initial size ({@code rc_buf_initial_sz}), in milliseconds of
+ *     encoded data at the target bitrate. Indicates how much data the decoding application buffers
+ *     before starting playback. Default: {@code 4000}. Libvpx default: {@code 4000}.
+ * @param rcBufOptimalSz Decoder buffer optimal size ({@code rc_buf_optimal_sz}), in milliseconds of
+ *     encoded data at the target bitrate. Indicates the buffer fullness the encoder should try to
+ *     maintain in the decoder. Default: {@code 5000}. Libvpx default: {@code 5000}.
  */
 public record VpxEncoderConfig(
         Codec codec,
@@ -201,7 +210,10 @@ public record VpxEncoderConfig(
         boolean resizeAllowed,
         int minKeyframeDistance,
         int rcUndershootPct,
-        int rcOvershootPct) {
+        int rcOvershootPct,
+        int rcBufSz,
+        int rcBufInitialSz,
+        int rcBufOptimalSz) {
 
     /** Real-time deadline (1 µs): fastest encoding, lowest quality. */
     public static final long DEADLINE_REALTIME = 1L;
@@ -369,6 +381,9 @@ public record VpxEncoderConfig(
         private int minKeyframeDistance;
         private int rcUndershootPct = 100;
         private int rcOvershootPct = 100;
+        private int rcBufSz = 6000;
+        private int rcBufInitialSz = 4000;
+        private int rcBufOptimalSz = 5000;
 
         /**
          * Creates a builder with the required frame dimensions. All other fields are pre-populated
@@ -786,6 +801,54 @@ public record VpxEncoderConfig(
             return this;
         }
 
+        /**
+         * Sets the decoder buffer size ({@code rc_buf_sz}), in milliseconds of encoded data at the
+         * target bitrate. Indicates how much data the decoding application is expected to buffer.
+         * Default: {@code 6000}. Libvpx default: {@code 6000}.
+         *
+         * @param value buffer size in milliseconds.
+         * @return this builder.
+         */
+        public Builder rcBufSz(final int value) {
+            if (value < 0) {
+                throw new IllegalArgumentException("rcBufSz must be non-negative");
+            }
+            this.rcBufSz = value;
+            return this;
+        }
+
+        /**
+         * Sets the decoder buffer initial size ({@code rc_buf_initial_sz}), in milliseconds of
+         * encoded data at the target bitrate. Indicates how much data the decoding application
+         * buffers before starting playback. Default: {@code 4000}. Libvpx default: {@code 4000}.
+         *
+         * @param value initial buffer size in milliseconds.
+         * @return this builder.
+         */
+        public Builder rcBufInitialSz(final int value) {
+            if (value < 0) {
+                throw new IllegalArgumentException("rcBufInitialSz must be non-negative");
+            }
+            this.rcBufInitialSz = value;
+            return this;
+        }
+
+        /**
+         * Sets the decoder buffer optimal size ({@code rc_buf_optimal_sz}), in milliseconds of
+         * encoded data at the target bitrate. Indicates the buffer fullness the encoder should try
+         * to maintain in the decoder. Default: {@code 5000}. Libvpx default: {@code 5000}.
+         *
+         * @param value optimal buffer size in milliseconds.
+         * @return this builder.
+         */
+        public Builder rcBufOptimalSz(final int value) {
+            if (value < 0) {
+                throw new IllegalArgumentException("rcBufOptimalSz must be non-negative");
+            }
+            this.rcBufOptimalSz = value;
+            return this;
+        }
+
         // =====================================================================
         // UNEXPOSED libvpx vpx_codec_enc_cfg_t FIELDS
         // Sources: vp8_cx_iface.c and vp9_cx_iface.c
@@ -810,11 +873,6 @@ public record VpxEncoderConfig(
         // rc_scaled_height         1    (VP9: 0)
         // rc_resize_down_thresh    60
         // rc_resize_up_thresh      30
-        //
-        // ---- Rate-control buffer model ----
-        // rc_max_buffer_size       6000  (ms)
-        // rc_buffer_initial_size   4000  (ms)
-        // rc_buffer_optimal_size   5000  (ms)
         //
         // ---- Scalable video coding (SVC / temporal layers) ----
         // ss_number_layers         VPX_SS_DEFAULT_LAYERS
@@ -874,7 +932,10 @@ public record VpxEncoderConfig(
                     resizeAllowed,
                     minKeyframeDistance,
                     rcUndershootPct,
-                    rcOvershootPct);
+                    rcOvershootPct,
+                    rcBufSz,
+                    rcBufInitialSz,
+                    rcBufOptimalSz);
         }
     }
 }

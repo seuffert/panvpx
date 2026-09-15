@@ -115,6 +115,9 @@ public abstract class AbstractVpxEncoder implements AutoCloseable {
             vpx_codec_enc_cfg.rc_resize_allowed(encCfg, config.resizeAllowed() ? 1 : 0);
             vpx_codec_enc_cfg.rc_undershoot_pct(encCfg, config.rcUndershootPct());
             vpx_codec_enc_cfg.rc_overshoot_pct(encCfg, config.rcOvershootPct());
+            vpx_codec_enc_cfg.rc_buf_sz(encCfg, config.rcBufSz());
+            vpx_codec_enc_cfg.rc_buf_initial_sz(encCfg, config.rcBufInitialSz());
+            vpx_codec_enc_cfg.rc_buf_optimal_sz(encCfg, config.rcBufOptimalSz());
 
             final MemorySegment timebase = vpx_codec_enc_cfg.g_timebase(encCfg);
             vpx_rational.num(timebase, config.timebaseNumerator());
