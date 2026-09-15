@@ -87,14 +87,14 @@ DYLD_LIBRARY_PATH=/opt/myapp/lib:$DYLD_LIBRARY_PATH java \
 <dependency>
   <groupId>org.seuffert</groupId>
   <artifactId>panvpx</artifactId>
-  <version>0.3.7</version>
+  <version>0.3.8</version>
 </dependency>
 ```
 
 ### Gradle (Kotlin DSL)
 
 ```kotlin
-implementation("org.seuffert:panvpx:0.3.7")
+implementation("org.seuffert:panvpx:0.3.8")
 ```
 
 ### JVM flag

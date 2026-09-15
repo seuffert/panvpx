@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.8] — 2026-09-15
+
 ### Added
 - `VpxEncoderConfig`: exposed `rcBufSz`/`rcBufInitialSz`/`rcBufOptimalSz` (`rc_buf_sz`/
   `rc_buf_initial_sz`/`rc_buf_optimal_sz`) decoder buffer model settings via the builder, applied
@@ -217,7 +219,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   caused libvpx to skip frames still held in its lookahead buffer. Changed to `VPX_DL_BEST_QUALITY`
   (deadline = 0) so all delayed frames are drained completely on flush.
 
-[Unreleased]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.3.7...HEAD
+[Unreleased]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.3.8...HEAD
+[0.3.8]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.3.7...v0.3.8
 [0.3.7]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.3.6...v0.3.7
 [0.3.6]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.3.5...v0.3.6
 [0.3.5]: https://gitlab.com/org.seuffert/panvpx/-/compare/v0.3.4...v0.3.5
